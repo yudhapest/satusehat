@@ -7,7 +7,7 @@ Workflow release repo ini memakai Changesets.
 Buat changeset baru:
 
 ```bash
-bun run changeset
+npm run changeset
 ```
 
 Pilih tipe rilis:

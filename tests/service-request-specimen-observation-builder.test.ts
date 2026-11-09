@@ -1,6 +1,7 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import { createServiceRequestSpecimenObservationBuilder } from "../src";
+import { expect } from "./helpers/expect";
 
 describe("serviceRequest -> specimen -> observation builder", () => {
   test("builds linked resources with shared subject and encounter", () => {

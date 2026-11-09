@@ -1,6 +1,7 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import { createServiceRequestImagingStudyDiagnosticReportBuilder } from "../src";
+import { expect } from "./helpers/expect";
 
 describe("serviceRequest -> imagingStudy -> diagnosticReport builder", () => {
   test("builds linked radiology resources with shared subject and encounter", () => {

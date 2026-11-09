@@ -1,7 +1,8 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import { createSatuSehatClient, SatuSehatValidationError } from "../src";
 import type { EpisodeOfCareCreateInput } from "../src";
+import { expect } from "./helpers/expect";
 
 const episodeOfCarePayload: EpisodeOfCareCreateInput = {
   resourceType: "EpisodeOfCare",
@@ -66,7 +67,7 @@ const episodeOfCarePayload: EpisodeOfCareCreateInput = {
 };
 
 describe("episodeOfCare endpoint", () => {
-  test("validates that search requires at least one parameter", () => {
+  test("validates that search requires at least one parameter", async () => {
     const client = createSatuSehatClient({
       accessToken: "test-token",
       fetch: async () =>
@@ -76,7 +77,7 @@ describe("episodeOfCare endpoint", () => {
         }),
     });
 
-    expect(() => client.episodeOfCare.search({} as never)).toThrow(
+    await expect(client.episodeOfCare.search({} as never)).rejects.toBeInstanceOf(
       SatuSehatValidationError,
     );
   });

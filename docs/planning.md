@@ -19,11 +19,11 @@ Membangun library TypeScript untuk membungkus Satu Sehat API dengan karakteristi
 
 ## Rekomendasi Stack
 
-- Runtime/package manager: Bun
+- Runtime/package manager: Node.js (>= 24) + npm
 - Language: TypeScript
 - Schema validation: Zod
-- Testing: Bun test
-- Build: `tsc` untuk typecheck dan Bun/tsup untuk output distribusi
+- Testing: `node:test` via `tsx --test`
+- Build: `tsc` untuk typecheck dan declaration, `esbuild` untuk output distribusi
 - Lint/formatting: bisa ditambahkan setelah fondasi package siap
 
 ## Struktur Folder yang Disarankan
@@ -99,7 +99,7 @@ type GetPatientParams = z.infer<typeof GetPatientParamsSchema>;
 
 - Selesai: `package.json` sudah siap untuk library npm.
 - Selesai: entry point sudah memakai `src/index.ts`.
-- Selesai: script `build`, `typecheck`, `test`, dan `prepublishOnly` sudah tersedia.
+- Selesai: script `build`, `typecheck`, `test`, dan `verify` sudah tersedia.
 - Selesai: strict TypeScript config sudah aktif.
 
 ### Phase 2: Core Client

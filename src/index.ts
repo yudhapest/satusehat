@@ -90,6 +90,8 @@ export type {
   DiagnosticReportClient,
   EncounterClient,
   EpisodeOfCareClient,
+  FetchLike,
+  HeadersInit,
   ImagingStudyClient,
   ImmunizationClient,
   LocationClient,

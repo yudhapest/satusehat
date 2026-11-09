@@ -4,6 +4,7 @@ import { createMemoryTokenStore, isAccessTokenExpired } from "./token-store";
 import { SatuSehatApiError, SatuSehatConfigError, SatuSehatValidationError } from "../core/errors";
 import {
   type FetchLike,
+  type HeadersInit,
   type MaybePromise,
   type OAuthClientCredentials,
   type StoredAccessToken,

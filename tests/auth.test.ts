@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, describe, mock, test } from "node:test";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -11,6 +11,7 @@ import {
   isAccessTokenExpired,
 } from "../src";
 import { SatuSehatApiError } from "../src/core/errors";
+import { expect } from "./helpers/expect";
 
 const tempPaths: string[] = [];
 
@@ -29,7 +30,7 @@ describe("token stores", () => {
       clientSecret: "client-secret",
       tokenStore,
       now: () => now,
-      fetch: mock(async () => {
+      fetch: mock.fn(async () => {
         callCount += 1;
 
         return new Response(
@@ -71,7 +72,7 @@ describe("token stores", () => {
       clientSecret: "client-secret",
       tokenStore,
       now: () => now,
-      fetch: mock(async () => {
+      fetch: mock.fn(async () => {
         callCount += 1;
 
         return new Response(
@@ -167,7 +168,7 @@ describe("401 retry flow", () => {
         clientSecret: "client-secret",
       },
       tokenStore,
-      fetch: mock(async (input, init) => {
+      fetch: mock.fn(async (input, init) => {
         const url = String(input);
 
         if (url.includes("/accesstoken")) {
@@ -248,7 +249,7 @@ describe("401 retry flow", () => {
         clientSecret: "client-secret",
       },
       tokenStore,
-      fetch: mock(async (input) => {
+      fetch: mock.fn(async (input) => {
         const url = String(input);
 
         if (url.includes("/accesstoken")) {

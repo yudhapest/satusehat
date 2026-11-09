@@ -5,13 +5,13 @@
 Untuk consumer package:
 
 ```bash
-bun add @digitalmedika/satusehat
+npm install https://github.com/yudhapest/satusehat/releases/download/v0.10.3/digitalmedika-satusehat-0.10.3.tgz
 ```
 
 Untuk development repository ini:
 
 ```bash
-bun install
+npm install
 ```
 
 ## Konfigurasi Environment
@@ -302,7 +302,7 @@ console.log(dockerCompose);
 ## Verifikasi Lokal
 
 ```bash
-bun run typecheck
-bun test
-bun run smoke:live
+npm run typecheck
+npm test
+npm run smoke:live
 ```

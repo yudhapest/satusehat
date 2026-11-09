@@ -2,6 +2,9 @@ export type MaybePromise<T> = T | Promise<T>;
 
 export type SatuSehatEnvironment = "sandbox" | "production";
 
+/** Same shape as the DOM `HeadersInit`, derived from the global `Headers` provided by Node.js. */
+export type HeadersInit = NonNullable<ConstructorParameters<typeof Headers>[0]>;
+
 export type FetchLike = (
   input: string | URL | Request,
   init?: RequestInit,

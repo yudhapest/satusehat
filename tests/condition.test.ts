@@ -1,6 +1,7 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import { createSatuSehatClient, SatuSehatValidationError } from "../src";
+import { expect } from "./helpers/expect";
 
 const conditionPayload = {
   resourceType: "Condition" as const,
@@ -122,6 +123,27 @@ describe("condition endpoint", () => {
     expect(result.total).toBe(1);
     expect(result.entry?.[0]?.resource.id).toBe("2a4e1a13-ee52-4c8b-a2ef-f41c79de698d");
     expect(result.entry?.[0]?.resource.code.coding[0]?.code).toBe("C47.0");
+  });
+
+  test("accepts any hex UUID-shaped encounter id, not only RFC 9562 UUIDs", async () => {
+    const client = createSatuSehatClient({
+      accessToken: "test-token",
+      fetch: async () =>
+        new Response(JSON.stringify({ resourceType: "Bundle", total: 0, entry: [] }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+    });
+
+    // Version nibble "0" and variant nibble "0" are outside RFC 9562.
+    const result = await client.condition.search({
+      encounter: "2b2d0a3e-082a-0fe9-0e13-da9c3b5e422f",
+    });
+
+    expect(result.total).toBe(0);
+    await expect(client.condition.search({ encounter: "not-a-uuid" })).rejects.toBeInstanceOf(
+      SatuSehatValidationError,
+    );
   });
 
   test("posts a validated condition resource", async () => {

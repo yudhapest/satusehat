@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["ESNext", "DOM"],
+    "lib": ["ESNext"],
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
@@ -15,8 +15,8 @@
     "exactOptionalPropertyTypes": true,
     "useUnknownInCatchVariables": true,
     "declaration": true,
-    "types": ["bun"],
+    "types": ["node"],
     "rootDir": "."
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests", "scripts"]
 }

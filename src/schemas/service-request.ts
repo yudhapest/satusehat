@@ -104,7 +104,7 @@ export const ServiceRequestPatchSchema = z.array(ServiceRequestPatchOperationSch
 export const ServiceRequestSearchParamsSchema = z
   .object({
     subject: z.string().min(1).optional(),
-    encounter: z.string().uuid().optional(),
+    encounter: z.guid().optional(),
     identifier: z
       .string()
       .regex(

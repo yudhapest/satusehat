@@ -39,14 +39,20 @@ Helper builder yang saat ini tersedia:
 
 ## Installation
 
+Fork ini tidak di-publish ke npm. Setiap tag rilis, CI mem-build tarball dan melampirkannya ke GitHub Release. Install dari URL tarball tersebut:
+
 ```bash
-bun add @digitalmedika/satusehat
+npm install https://github.com/yudhapest/satusehat/releases/download/v0.10.3/digitalmedika-satusehat-0.10.3.tgz
 ```
 
-Untuk development library ini sendiri:
+Jangan install via `github:yudhapest/satusehat`: repo tidak menyimpan `dist/`, dan npm 11 gagal menyiapkan dependency git yang perlu di-build.
+
+Untuk mencoba perubahan di consumer sebelum rilis, lihat [docs/releasing.md](./docs/releasing.md#development-bersama-consumer).
+
+Untuk development library ini sendiri (Node.js >= 24):
 
 ```bash
-bun install
+npm install
 ```
 
 ## Quick Start
@@ -188,15 +194,20 @@ Secara default SDK mendukung:
 ## Development
 
 ```bash
-bun run typecheck
-bun test
-bun run build
+npm run typecheck
+npm test
+npm run build
+
+# atau semuanya sekaligus
+npm run verify
 ```
+
+Test memakai runner bawaan Node (`node:test`, dijalankan lewat `tsx --test`) dengan helper `expect` di `tests/helpers/expect.ts`.
 
 Smoke test ke SATUSEHAT live:
 
 ```bash
-bun run smoke:live
+npm run smoke:live
 ```
 
 Untuk environment `sandbox`, smoke test akan memakai dummy patient resmi SATUSEHAT bila parameter test belum diisi.

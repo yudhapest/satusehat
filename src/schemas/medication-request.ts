@@ -148,7 +148,7 @@ export const MedicationRequestPatchSchema = z.array(MedicationRequestPatchOperat
 export const MedicationRequestSearchParamsSchema = z
   .object({
     subject: z.string().min(1).optional(),
-    encounter: z.string().uuid().optional(),
+    encounter: z.guid().optional(),
   })
   .superRefine((value, ctx) => {
     if (value.subject || value.encounter) {

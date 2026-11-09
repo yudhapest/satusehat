@@ -1,7 +1,8 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import { createSatuSehatClient, SatuSehatValidationError } from "../src";
 import { createEncounterFixture } from "./fixtures/encounter";
+import { expect } from "./helpers/expect";
 
 const encounterPayload = createEncounterFixture("outpatient");
 

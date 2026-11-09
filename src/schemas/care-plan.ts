@@ -111,7 +111,7 @@ export const CarePlanPatchSchema = z.array(CarePlanPatchOperationSchema).min(1);
 const CarePlanSearchParamsObjectSchema = z.object({
   patient: z.string().min(1).optional(),
   subject: z.string().min(1).optional(),
-  encounter: z.string().uuid().optional(),
+  encounter: z.guid().optional(),
 });
 
 export const CarePlanSearchParamsSchema = CarePlanSearchParamsObjectSchema.superRefine(
@@ -140,7 +140,7 @@ export const CarePlanSearchParamsSchema = CarePlanSearchParamsObjectSchema.super
 export const CarePlanNormalizedSearchParamsSchema = z
   .object({
     patient: z.string().min(1).optional(),
-    encounter: z.string().uuid().optional(),
+    encounter: z.guid().optional(),
   })
   .superRefine((value, ctx) => {
     if (value.patient || value.encounter) {

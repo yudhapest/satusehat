@@ -1,6 +1,7 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
-import { createSatuSehatClient, resolveSatuSehatDicomBaseUrl } from "../src";
+import { createSatuSehatClient, resolveSatuSehatDicomBaseUrl, type HeadersInit } from "../src";
+import { expect } from "./helpers/expect";
 
 describe("dicomRouter.downloadConfig", () => {
   test("downloads docker-compose.yml as plain text from the default DICOM endpoint", async () => {

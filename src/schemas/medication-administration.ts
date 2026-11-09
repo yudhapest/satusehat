@@ -71,7 +71,7 @@ export const MedicationAdministrationPatchSchema = z
 export const MedicationAdministrationSearchParamsSchema = z
   .object({
     subject: z.string().min(1).optional(),
-    context: z.string().uuid().optional(),
+    context: z.guid().optional(),
   })
   .superRefine((value, ctx) => {
     if (value.subject || value.context) {

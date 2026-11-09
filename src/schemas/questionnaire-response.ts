@@ -80,7 +80,7 @@ export const QuestionnaireResponsePatchSchema = z
 export const QuestionnaireResponseSearchParamsSchema = z
   .object({
     patient: z.string().min(1).optional(),
-    encounter: z.string().uuid().optional(),
+    encounter: z.guid().optional(),
   })
   .superRefine((value, ctx) => {
     const hasPatient = Boolean(value.patient);

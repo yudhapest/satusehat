@@ -1,6 +1,7 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import { createSatuSehatClient, SatuSehatValidationError } from "../src";
+import { expect } from "./helpers/expect";
 
 const observationPayload = {
   resourceType: "Observation" as const,
