@@ -95,7 +95,7 @@ const createdEncounter = await client.encounter.create(encounterArrived);
 const encounterInProgress = queueFlow.buildEncounterAtStage("in-progress");
 await client.encounter.update({
   id: createdEncounter.id,
-  body: encounterInProgress,
+  body: { ...encounterInProgress, id: createdEncounter.id },
 });
 
 const condition = await client.condition.create(
@@ -111,7 +111,7 @@ const encounterFinished = queueFlow.buildEncounterWithDiagnosis({
 
 await client.encounter.update({
   id: createdEncounter.id,
-  body: encounterFinished,
+  body: { ...encounterFinished, id: createdEncounter.id },
 });
 ```
 

@@ -1,21 +1,14 @@
+import { createSatuSehatClientFromEnv } from "../src";
 import {
-  createSatuSehatClientFromEnv,
-  resolveSatuSehatBaseUrl,
-  type SatuSehatEnvSource,
-} from "../src";
-import {
-  SatuSehatApiError,
-  SatuSehatConfigError,
-  SatuSehatValidationError,
-} from "../src/core/errors";
+  assertSandbox,
+  DEFAULT_SANDBOX_PATIENT_IDENTIFIER,
+  DEFAULT_SANDBOX_PRACTITIONER_IDENTIFIER,
+  describeError,
+  type SandboxEnv,
+} from "./sandbox-env";
 
 // Read-only checks against the SATUSEHAT sandbox: every call is a GET, nothing is created.
 // Each check validates the real response against the library schemas.
-
-interface SandboxCheckEnv extends SatuSehatEnvSource {
-  SATUSEHAT_ORGANIZATION_ID?: string;
-  SATUSEHAT_TEST_PRACTITIONER_IDENTIFIER?: string;
-}
 
 interface SearchResult {
   total?: number | undefined;
@@ -23,7 +16,7 @@ interface SearchResult {
   outcomes?: unknown[] | undefined;
 }
 
-const env = process.env as SandboxCheckEnv;
+const env = process.env as SandboxEnv;
 const client = createSatuSehatClientFromEnv(env);
 
 let failedCount = 0;
@@ -44,47 +37,18 @@ async function check<T>(
   }
 }
 
-function describeError(error: unknown): string {
-  if (error instanceof SatuSehatValidationError) {
-    return `response validation failed: ${JSON.stringify(error.issues.slice(0, 3))}`;
-  }
-
-  if (error instanceof SatuSehatApiError) {
-    return `API error ${error.status}: ${JSON.stringify(error.response)}`;
-  }
-
-  return String(error);
-}
-
 function describeSearch(result: SearchResult): string {
   const outcomes = result.outcomes?.length ? `, outcomes=${result.outcomes.length}` : "";
 
   return `total=${result.total ?? 0}, entries=${result.entry?.length ?? 0}${outcomes}`;
 }
 
-function assertSandbox(source: SandboxCheckEnv): void {
-  const baseUrl = source.SATUSEHAT_BASE_URL ?? resolveSatuSehatBaseUrl("sandbox");
-
-  if ((source.SATUSEHAT_ENV ?? "sandbox") !== "sandbox" || !baseUrl.includes("-stg.")) {
-    throw new SatuSehatConfigError(
-      "sandbox-check only runs against the SATUSEHAT sandbox. Set SATUSEHAT_ENV=sandbox.",
-    );
-  }
-
-  if (!source.SATUSEHAT_ORGANIZATION_ID) {
-    throw new SatuSehatConfigError("Set SATUSEHAT_ORGANIZATION_ID to run sandbox-check.");
-  }
-}
-
 async function main(): Promise<void> {
-  assertSandbox(env);
-
-  const organizationId = env.SATUSEHAT_ORGANIZATION_ID ?? "";
+  const organizationId = assertSandbox(env);
   const patientIdentifier =
-    env.SATUSEHAT_TEST_PATIENT_IDENTIFIER ?? "https://fhir.kemkes.go.id/id/nik|9271060312000001";
+    env.SATUSEHAT_TEST_PATIENT_IDENTIFIER ?? DEFAULT_SANDBOX_PATIENT_IDENTIFIER;
   const practitionerIdentifier =
-    env.SATUSEHAT_TEST_PRACTITIONER_IDENTIFIER ??
-    "https://fhir.kemkes.go.id/id/nik|7209061211900001";
+    env.SATUSEHAT_TEST_PRACTITIONER_IDENTIFIER ?? DEFAULT_SANDBOX_PRACTITIONER_IDENTIFIER;
 
   console.log("Running SATUSEHAT sandbox read-only checks...");
 

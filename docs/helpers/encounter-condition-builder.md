@@ -67,7 +67,7 @@ const encounterDraft = createEncounterBuilder({
     use: {
       coding: [
         {
-          system: "https://www.hl7.org/fhir/Codesystem-diagnosis-role",
+          system: "http://terminology.hl7.org/CodeSystem/diagnosis-role",
           code: "AD",
           display: "Admission diagnosis",
         },
@@ -117,7 +117,7 @@ const conditionBuilder = createEncounterConditionBuilder({
     verificationStatus: {
       coding: [
         {
-          system: "https://www.hl7.org/fhir/Codesystem-condition-ver-status",
+          system: "http://terminology.hl7.org/CodeSystem/condition-ver-status",
           code: "provisional",
           display: "Provisional",
         },
