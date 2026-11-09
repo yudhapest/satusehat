@@ -1,10 +1,9 @@
 import { z } from "zod";
 
 import {
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
   CodingSchema,
+  createSearchBundleSchema,
   IdentifierSchema,
   MetaSchema,
   PeriodSchema,
@@ -197,13 +196,7 @@ export const EncounterUpdateParamsSchema = z.object({
   id: z.string().min(1),
 });
 
-export const EncounterBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(EncounterSchema)).optional(),
-});
+export const EncounterBundleSchema = createSearchBundleSchema(EncounterSchema);
 
 export type EncounterIdentifier = z.infer<typeof EncounterIdentifierSchema>;
 export type EncounterStatus = z.infer<typeof EncounterStatusSchema>;

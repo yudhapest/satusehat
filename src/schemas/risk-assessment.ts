@@ -1,9 +1,8 @@
 import { z } from "zod";
 
 import {
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
+  createSearchBundleSchema,
   IdentifierSchema,
   MetaSchema,
   PeriodSchema,
@@ -119,13 +118,7 @@ export const RiskAssessmentUpdateParamsSchema = z.object({
   id: z.string().min(1),
 });
 
-export const RiskAssessmentBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(RiskAssessmentSchema)).optional(),
-});
+export const RiskAssessmentBundleSchema = createSearchBundleSchema(RiskAssessmentSchema);
 
 export type RiskAssessmentStatus = z.infer<typeof RiskAssessmentStatusSchema>;
 export type RiskAssessmentCoding = z.infer<typeof RiskAssessmentCodingSchema>;

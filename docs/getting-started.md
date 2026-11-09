@@ -76,6 +76,26 @@ if (!patient?.id) {
 console.log(patient.id);
 ```
 
+### Hasil Search dan `outcomes`
+
+SATUSEHAT bisa menyisipkan `OperationOutcome` ke dalam hasil search, misalnya untuk data yang disembunyikan karena aturan consent atau privasi pasien. SDK memisahkannya:
+
+- `entry` hanya berisi resource yang dicari (misalnya `Condition`)
+- `outcomes` berisi `OperationOutcome` tersebut, dan hanya ada bila server mengirimkannya
+
+```ts
+const result = await client.condition.search({ subject: patient.id });
+
+const conditions = result.entry?.map((entry) => entry.resource) ?? [];
+const suppressed = result.outcomes?.filter((outcome) =>
+  outcome.issue.some((issue) => issue.code === "suppressed"),
+);
+
+console.log(`${conditions.length} diagnosis, ${suppressed?.length ?? 0} disembunyikan karena consent`);
+```
+
+`total` tetap mengikuti nilai dari server, jadi bisa lebih besar dari jumlah `entry`. Pemisahan ini hanya terjadi saat validasi response aktif (default). Dengan `validateResponse: false`, response dikembalikan apa adanya.
+
 ## Contoh End-to-End Sederhana
 
 Contoh ini menunjukkan pola yang direkomendasikan:
@@ -305,4 +325,5 @@ console.log(dockerCompose);
 npm run typecheck
 npm test
 npm run smoke:live
+npm run smoke:sandbox
 ```

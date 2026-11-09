@@ -584,3 +584,4 @@ export type {
   OrganizationTelecom,
   OrganizationType,
 } from "./schemas/organization";
+export type { OperationOutcome, OperationOutcomeIssue } from "./schemas/common";

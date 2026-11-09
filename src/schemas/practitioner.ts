@@ -3,9 +3,8 @@ import { z } from "zod";
 import {
   AddressSchema,
   AttachmentSchema,
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
+  createSearchBundleSchema,
   HumanNameSchema,
   IdentifierSchema,
   MetaSchema,
@@ -73,13 +72,7 @@ export const PractitionerSearchParamsSchema = z
     });
   });
 
-export const PractitionerBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(PractitionerSchema)).optional(),
-});
+export const PractitionerBundleSchema = createSearchBundleSchema(PractitionerSchema);
 
 export type PractitionerIdentifier = z.infer<typeof PractitionerIdentifierSchema>;
 export type PractitionerQualification = z.infer<typeof PractitionerQualificationSchema>;

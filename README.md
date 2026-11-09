@@ -212,6 +212,14 @@ npm run smoke:live
 
 Untuk environment `sandbox`, smoke test akan memakai dummy patient resmi SATUSEHAT bila parameter test belum diisi.
 
+Pengecekan read-only ke beberapa resource di sandbox (Organization, Location, Practitioner, Patient, Encounter, Condition). Semua request berupa GET dan respons divalidasi dengan schema SDK:
+
+```bash
+npm run smoke:sandbox
+```
+
+Script ini menolak berjalan bila environment bukan `sandbox`, dan membutuhkan `SATUSEHAT_ORGANIZATION_ID`.
+
 ## Documentation
 
 - [Getting Started](./docs/getting-started.md)

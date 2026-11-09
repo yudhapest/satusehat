@@ -1,9 +1,8 @@
 import { z } from "zod";
 
 import {
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
+  createSearchBundleSchema,
   IdentifierSchema,
   MetaSchema,
   PeriodSchema,
@@ -126,13 +125,7 @@ export const ProcedureUpdateParamsSchema = z.object({
   id: z.string().min(1),
 });
 
-export const ProcedureBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(ProcedureSchema)).optional(),
-});
+export const ProcedureBundleSchema = createSearchBundleSchema(ProcedureSchema);
 
 export type ProcedureIdentifier = z.infer<typeof ProcedureIdentifierSchema>;
 export type ProcedureStatus = z.infer<typeof ProcedureStatusSchema>;

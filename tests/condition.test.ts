@@ -146,6 +146,120 @@ describe("condition endpoint", () => {
     );
   });
 
+  test("moves consent-suppressed OperationOutcome entries out of search results", async () => {
+    // Shape returned by the SATUSEHAT sandbox: suppressed results are mixed into `entry`.
+    const suppressed = (conditionId: string) => ({
+      resource: {
+        resourceType: "OperationOutcome",
+        issue: [
+          {
+            severity: "information",
+            code: "suppressed",
+            details: {
+              text: "The operation did not return any information due to consent or privacy rules.",
+            },
+            diagnostics: `No consent available for Condition/${conditionId}`,
+          },
+        ],
+      },
+    });
+
+    const client = createSatuSehatClient({
+      accessToken: "test-token",
+      fetch: async () =>
+        new Response(
+          JSON.stringify({
+            resourceType: "Bundle",
+            type: "searchset",
+            total: 1,
+            entry: [
+              suppressed("e197e9ba-c4f2-4b8e-9d55-1f0c2a4b7e01"),
+              { resource: { id: "2a4e1a13-ee52-4c8b-a2ef-f41c79de698d", ...conditionPayload } },
+              suppressed("57eed4cd-ca31-4d6a-8a1e-0b9f2c3d4e02"),
+            ],
+          }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          },
+        ),
+    });
+
+    const result = await client.condition.search({ subject: "100000030009" });
+
+    expect(result.entry).toHaveLength(1);
+    expect(result.entry?.[0]?.resource.code.coding[0]?.code).toBe("C47.0");
+    expect(result.outcomes).toHaveLength(2);
+    expect(result.outcomes?.[0]?.issue[0]?.code).toBe("suppressed");
+    expect(result.outcomes?.[1]?.issue[0]?.diagnostics).toContain(
+      "Condition/57eed4cd-ca31-4d6a-8a1e-0b9f2c3d4e02",
+    );
+  });
+
+  test("omits outcomes when a search bundle has none", async () => {
+    const client = createSatuSehatClient({
+      accessToken: "test-token",
+      fetch: async () =>
+        new Response(
+          JSON.stringify({
+            resourceType: "Bundle",
+            total: 1,
+            entry: [
+              { resource: { id: "2a4e1a13-ee52-4c8b-a2ef-f41c79de698d", ...conditionPayload } },
+            ],
+          }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          },
+        ),
+    });
+
+    const result = await client.condition.search({ subject: "100000030009" });
+
+    expect(result.entry).toHaveLength(1);
+    expect(result.outcomes).toBeUndefined();
+  });
+
+  test("still rejects invalid search results mixed with OperationOutcome entries", async () => {
+    const { code: _code, ...conditionWithoutCode } = conditionPayload;
+    const client = createSatuSehatClient({
+      accessToken: "test-token",
+      fetch: async () =>
+        new Response(
+          JSON.stringify({
+            resourceType: "Bundle",
+            entry: [
+              {
+                resource: {
+                  resourceType: "OperationOutcome",
+                  issue: [{ severity: "information", code: "suppressed" }],
+                },
+              },
+              { resource: { id: "2a4e1a13-ee52-4c8b-a2ef-f41c79de698d", ...conditionWithoutCode } },
+            ],
+          }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          },
+        ),
+    });
+
+    const error = await client.condition.search({ subject: "100000030009" }).then(
+      () => undefined,
+      (caught: unknown) => caught,
+    );
+
+    expect(error).toBeInstanceOf(SatuSehatValidationError);
+    expect((error as SatuSehatValidationError).issues[0]?.path).toEqual([
+      "entry",
+      0,
+      "resource",
+      "code",
+    ]);
+  });
+
   test("posts a validated condition resource", async () => {
     let capturedBody: unknown;
 

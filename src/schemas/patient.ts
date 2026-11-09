@@ -1,8 +1,7 @@
 import { z } from "zod";
 
 import {
-  BundleEntrySchema,
-  BundleLinkSchema,
+  createSearchBundleSchema,
   HumanNameSchema,
   IdentifierSchema,
   MetaSchema,
@@ -52,13 +51,7 @@ export const PatientSearchParamsSchema = z
     });
   });
 
-export const PatientBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(PatientSchema)).optional(),
-});
+export const PatientBundleSchema = createSearchBundleSchema(PatientSchema);
 
 export type PatientIdentifier = z.infer<typeof PatientIdentifierSchema>;
 export type Patient = z.infer<typeof PatientSchema>;

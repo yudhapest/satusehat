@@ -37,6 +37,7 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "smoke:live": "tsx --env-file-if-exists=.env ./scripts/live-smoke-test.ts",
+    "smoke:sandbox": "tsx --env-file-if-exists=.env ./scripts/sandbox-check.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "tsx --test \"tests/**/*.test.ts\"",
     "verify": "npm run typecheck && npm test && npm run build",

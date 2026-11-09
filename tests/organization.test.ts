@@ -174,4 +174,53 @@ describe("organization endpoint", () => {
     expect(result.total).toBe(1);
     expect(result.entry?.[0]?.resource.name).toBe("Laboratorium Puskesmas SATUSEHAT");
   });
+
+  test("reads a parent organization registered without identifier or type", async () => {
+    const client = createSatuSehatClient({
+      accessToken: "test-token",
+      fetch: async (input) => {
+        expect(String(input)).toContain("/Organization/10000004");
+
+        // Shape returned by the SATUSEHAT sandbox for a Kemenkes-registered parent organization.
+        return new Response(
+          JSON.stringify({
+            resourceType: "Organization",
+            id: "10000004",
+            active: true,
+            identifier: [],
+            name: "Puskesmas SATUSEHAT",
+            telecom: [{ system: "email", value: "puskesmas@example.com" }],
+            meta: { lastUpdated: "2024-01-01T00:00:00+00:00", versionId: "1" },
+          }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          },
+        );
+      },
+    });
+
+    const organization = await client.organization.getById({ id: "10000004" });
+
+    expect(organization.name).toBe("Puskesmas SATUSEHAT");
+    expect(organization.identifier).toHaveLength(0);
+    expect(organization.type).toBeUndefined();
+  });
+
+  test("still requires identifier and type when creating an organization", async () => {
+    const client = createSatuSehatClient({
+      accessToken: "test-token",
+      fetch: async () => {
+        throw new Error("Request must not be sent for an invalid payload");
+      },
+    });
+
+    await expect(
+      client.organization.create({
+        resourceType: "Organization",
+        active: true,
+        name: "Puskesmas SATUSEHAT",
+      } as never),
+    ).rejects.toBeInstanceOf(SatuSehatValidationError);
+  });
 });

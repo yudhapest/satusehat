@@ -40,6 +40,14 @@ const organization = await client.organization.getById({
 });
 ```
 
+Pada response (`getById`, `search`, dan hasil `create`/`update`), `identifier` dan `type` bersifat opsional sesuai kardinalitas FHIR. Organisasi induk yang didaftarkan Kemenkes bisa dikembalikan dengan `identifier: []` dan tanpa `type`, jadi tangani kemungkinan kosong:
+
+```ts
+const identifierValue = organization.identifier?.[0]?.value;
+```
+
+Aturan ketat di bagian [Create](#create) tetap berlaku untuk payload yang dikirim.
+
 ## Create
 
 Field wajib yang saat ini dimodelkan:

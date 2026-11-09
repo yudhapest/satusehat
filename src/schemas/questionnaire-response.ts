@@ -1,9 +1,8 @@
 import { z } from "zod";
 
 import {
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodingSchema,
+  createSearchBundleSchema,
   MetaSchema,
   ReferenceSchema,
 } from "./common";
@@ -120,13 +119,7 @@ export const QuestionnaireResponseUpdateParamsSchema = z.object({
   id: z.string().min(1),
 });
 
-export const QuestionnaireResponseBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(QuestionnaireResponseSchema)).optional(),
-});
+export const QuestionnaireResponseBundleSchema = createSearchBundleSchema(QuestionnaireResponseSchema);
 
 export type QuestionnaireResponseAnswerValue = z.infer<typeof QuestionnaireResponseAnswerValueSchema>;
 export type QuestionnaireResponseAnswer = z.infer<typeof QuestionnaireResponseAnswerSchema>;

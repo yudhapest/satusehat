@@ -1,10 +1,9 @@
 import { z } from "zod";
 
 import {
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
   ContactPointSchema,
+  createSearchBundleSchema,
   IdentifierSchema,
   MetaSchema,
   PeriodSchema,
@@ -68,13 +67,7 @@ export const PractitionerRoleUpdateParamsSchema = z.object({
   id: z.string().min(1),
 });
 
-export const PractitionerRoleBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(PractitionerRoleSchema)).optional(),
-});
+export const PractitionerRoleBundleSchema = createSearchBundleSchema(PractitionerRoleSchema);
 
 export type PractitionerRoleAvailableTime = z.infer<typeof PractitionerRoleAvailableTimeSchema>;
 export type PractitionerRoleNotAvailable = z.infer<typeof PractitionerRoleNotAvailableSchema>;
