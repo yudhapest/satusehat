@@ -1,6 +1,7 @@
 import { describe, test } from "node:test";
 
-import { EncounterCreateSchema } from "../src/schemas/encounter";
+import { createEncounterLocationServiceClassExtension } from "../src";
+import { EncounterCreateSchema, EncounterSchema } from "../src/schemas/encounter";
 import {
   createEncounterFixture,
   encounterFixtureUseCases,
@@ -42,15 +43,13 @@ describe("encounter fixtures", () => {
       "Location/home-care-transition",
     );
     expect(inpatient.hospitalization?.dischargeDisposition?.coding?.[0]?.code).toBe("home");
-    expect(inpatient.location[0]?.extension?.[0]).toEqual({
-      url: "https://fhir.kemkes.go.id/r4/StructureDefinition/serviceClass",
-      extension: [
-        {
-          url: "valueCode",
-          valueCode: "kelas-1",
-        },
-      ],
-    });
+    expect(inpatient.location[0]?.extension?.[0]).toEqual(
+      createEncounterLocationServiceClassExtension({
+        careSetting: "inpatient",
+        serviceClass: "1",
+        upgradeClass: "kelas-tetap",
+      }),
+    );
   });
 
   test("covers emergency triage progression and multi-location flow", () => {
@@ -81,16 +80,32 @@ describe("encounter fixtures", () => {
     );
   });
 
-  test("rejects serviceClass extensions that omit the structured valueCode", () => {
+  test("rejects ServiceClass extensions without a service class value", () => {
+    const inpatient = createEncounterFixture("inpatient");
+    inpatient.location[0]!.extension = [
+      {
+        url: "https://fhir.kemkes.go.id/r4/StructureDefinition/ServiceClass",
+        extension: [],
+      },
+    ];
+
+    expect(() => EncounterCreateSchema.parse(inpatient)).toThrow(
+      "ServiceClass extension must contain exactly one value sub-extension",
+    );
+  });
+
+  test("rejects the legacy lowercase serviceClass extension URL on submission", () => {
     const inpatient = createEncounterFixture("inpatient");
     inpatient.location[0]!.extension = [
       {
         url: "https://fhir.kemkes.go.id/r4/StructureDefinition/serviceClass",
-      } as never,
+        extension: [{ url: "valueCode", valueCode: "kelas-1" }],
+      },
     ];
 
     expect(() => EncounterCreateSchema.parse(inpatient)).toThrow(
-      "serviceClass extension must include a structured valueCode entry",
+      "https://fhir.kemkes.go.id/r4/StructureDefinition/ServiceClass",
     );
+    expect(() => EncounterSchema.parse({ ...inpatient, id: "stored-encounter" })).not.toThrow();
   });
 });

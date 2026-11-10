@@ -26,9 +26,16 @@ Selain builder utama, helper ini sekarang punya shortcut yang cocok untuk flow a
 - `createEncounterIdentifier(organizationId, registrationId)`
 - `createEncounterServiceProviderReference(organizationId, display?)`
 - `createEncounterParticipant({ practitionerId, display, ... })`
-- `createEncounterLocation({ locationId, display, ... })`
-- `createEncounterClassFromConsultationMethod("RAJAL" | "IGD" | "RANAP" | "HOMECARE" | "TELEKONSULTASI")`
-- `createEncounterStatusTimeline({ stages, periodEnd })`
+- `createEncounterLocation({ locationId, display, serviceClass, ... })`
+- `createEncounterClassFromConsultationMethod("RAJAL" | "IGD" | "RANAP" | "HOMECARE" | "TELEKONSULTASI")` (`HOMECARE` = `HH`, `TELEKONSULTASI` = `VR` / virtual)
+- `createEncounterStatusTimeline({ stages, periodEnd? })`
+- `createEncounterLocationServiceClassExtension({ careSetting, serviceClass, upgradeClass? })`
+- `createEncounterDischargeDisposition(code, text?)`
+- `createEncounterAdmitSource(code, text?)`
+- `createEncounterDiagnosisUse(code)`
+- `createEncounterNoveltyExtension(kind, code)`
+- `createEncounterClass(code)`
+- `moveEncounterLocation(locations, next, at)`
 
 ## Contoh Dasar
 
@@ -249,8 +256,169 @@ Aturan helper ini:
 
 - status pertama harus `arrived`
 - setiap `start` harus urut naik
-- `periodEnd` otomatis menjadi akhir status dan class terakhir
+- `periodEnd` otomatis menjadi akhir status dan class terakhir. Kosongkan `periodEnd` selama pasien masih di IGD, sehingga status terakhir tetap terbuka
 - kalau `classStages` tidak diberikan, helper akan membuat 1 class `emergency` untuk seluruh encounter
+
+## Rawat Jalan, IGD, dan Rawat Inap (Alur Real-Time)
+
+Di SIMRS, waktu setiap tahap baru diketahui saat terjadi. Pakai `advanceStatus`, `moveToLocation`, dan `finish` pada builder yang sama, lalu kirim hasil `build()` dengan `create` (POST) atau `update` (PUT).
+
+Semua kode resmi Encounter (Lampiran Standar Terminologi SATUSEHAT v12.0, 31 Oktober 2026, bab 3) ada di satu file, `src/schemas/encounter-terminology.ts`, dan di-export dari package: `ENCOUNTER_CLASSES`, `ENCOUNTER_OUTPATIENT_SERVICE_CLASSES`, `ENCOUNTER_INPATIENT_SERVICE_CLASSES`, `ENCOUNTER_UPGRADE_CLASSES`, `ENCOUNTER_ADMIT_SOURCES`, `ENCOUNTER_DISCHARGE_DISPOSITIONS`, `ENCOUNTER_DIAGNOSIS_USES`, `ENCOUNTER_NOVELTY_CODES`. Saat Kemenkes merilis versi baru, cukup perbarui file ini.
+
+### Kelas perawatan dan indikator perubahan kelas
+
+`Encounter.location` membawa extension SATUSEHAT `ServiceClass` (`https://fhir.kemkes.go.id/r4/StructureDefinition/ServiceClass`) dengan dua isi: kelas perawatan (`value`) dan indikator perubahan kelas (`upgradeClassIndicator`). Isi lewat opsi `serviceClass` di `createEncounterLocation`:
+
+| `careSetting` | Dipakai untuk | `serviceClass` |
+|---|---|---|
+| `outpatient` | Rawat jalan dan IGD | `reguler` (Kelas Reguler), `eksekutif` (Kelas Eksekutif) |
+| `inpatient` | Rawat inap | `1`, `2`, `3`, `vip`, `vvip`, `kris-a`, `kris-b`, `kris-c` (KRIS) |
+
+`upgradeClass`: `kelas-tetap` (default), `naik-kelas`, `turun-kelas`, `titip-rawat`.
+
+Saat dikirim, kelas harus cocok dengan jenis kunjungan: Encounter `AMB` dan `EMER` memakai kelas rawat jalan, sedangkan `IMP` memakai kelas rawat inap atau KRIS. Kombinasi yang tidak cocok ditolak sebelum request dikirim.
+
+### Elemen wajib per layanan
+
+`client.encounter.create` dan `update` menolak Encounter yang belum memuat elemen bertanda wajib (*) di tabel Pendaftaran Kunjungan tiap panduan. Aturannya berbeda per `class`:
+
+| Elemen | Rawat Jalan (`AMB`) | IGD (`EMER`) | Rawat Inap (`IMP`) |
+|---|---|---|---|
+| `participant[i].type` | wajib | wajib | – |
+| `participant[i].individual` | wajib | – | wajib |
+| `location` ServiceClass | – | wajib, hanya `reguler` | – |
+| `diagnosis` (saat `finished`) | wajib | wajib | wajib |
+| `hospitalization.dischargeDisposition` (saat `finished`) | wajib | wajib | – |
+
+Draft dari builder (`build()`) tidak dicek untuk elemen ini, sehingga Encounter bisa dirakit bertahap.
+
+### Tipe pelayanan (`serviceType`)
+
+`serviceType` berisi satu kode dari HL7 `service-type`, SNOMED CT, atau Kemenkes. Daftar resmi ada di [lampiran Encounter.serviceType](https://docs.google.com/spreadsheets/d/1t6czuuLW38WUpZS62OeBf9wImSIicDqci7zXMRJibfg): tab `Encounter.serviceType` (kode FHIR) dan tab RL 3.2, RL 3.5, RL 3.10 (pemetaan Jenis Kegiatan SIRS Online). Pemetaan poli ke kode adalah konfigurasi SIMRS, karena tiap laporan RL bisa memakai kode berbeda untuk poli yang sama.
+
+```ts
+import { HL7_SERVICE_TYPE_SYSTEM, SNOMED_CT_SYSTEM } from "@digitalmedika/satusehat";
+
+// Poli Umum (RL 3.5)
+const umum = { coding: [{ system: HL7_SERVICE_TYPE_SYSTEM, code: "124", display: "General Practice" }] };
+// Penyakit Dalam rawat inap (RL 3.2)
+const penyakitDalam = {
+  coding: [{ system: SNOMED_CT_SYSTEM, code: "792848000", display: "Internal medicine service" }],
+};
+
+createEncounterBuilder({ /* ... */ serviceType: umum });
+```
+
+### Rawat jalan
+
+```ts
+const builder = createEncounterBuilder({
+  preset: "outpatient",
+  identifier: createEncounterIdentifier(organizationId, noRegistrasi),
+  status: "arrived",
+  period: { start: waktuDatang },
+  subject: { reference: `Patient/${ihsPasien}` },
+  participant: [createEncounterParticipant({ practitionerId: ihsDokter })],
+  location: createEncounterLocation({
+    locationId: idPoli,
+    status: "active",
+    period: { start: waktuDatang },
+    serviceClass: { careSetting: "outpatient", serviceClass: "reguler" },
+  }),
+  serviceProvider: createEncounterServiceProviderReference(organizationId),
+});
+
+const created = await client.encounter.create(builder.build());
+
+// Pasien mulai diperiksa dokter
+builder.advanceStatus("in-progress", waktuDiperiksa);
+await client.encounter.update({ id: created.id, body: { ...builder.build(), id: created.id } });
+
+// Selesai: diagnosis dan cara pulang
+builder
+  .addDiagnosisByCondition(condition.id)
+  .setInpatientHospitalization({ dischargeDisposition: "home" })
+  .finish(waktuPulang);
+await client.encounter.update({ id: created.id, body: { ...builder.build(), id: created.id } });
+```
+
+### IGD
+
+Sama seperti rawat jalan dengan `preset: "emergency"` (`EMER`), kelas `outpatient`/`reguler`, dan tahap triase:
+
+```ts
+builder.advanceStatus("triaged", waktuTriase);
+builder.advanceStatus("in-progress", waktuDitangani);
+```
+
+### Rawat inap dan naik kelas
+
+Pasien rawat inap dikirim dengan status `in-progress` tanpa `period.end`. Saat pindah ruang atau naik kelas, `moveToLocation` menutup lokasi lama (`status: "completed"`, `period.end`) dan menambahkan lokasi baru:
+
+```ts
+const builder = createEncounterBuilder({
+  preset: "inpatient",
+  // identifier, subject, participant, serviceProvider seperti di atas
+  status: "in-progress",
+  period: { start: waktuMasuk },
+  location: createEncounterLocation({
+    locationId: idBedKelas2,
+    status: "active",
+    period: { start: waktuMasuk },
+    serviceClass: { careSetting: "inpatient", serviceClass: "2" },
+  }),
+});
+
+// Naik kelas 2 -> 1
+builder.moveToLocation(
+  {
+    locationId: idBedKelas1,
+    serviceClass: { careSetting: "inpatient", serviceClass: "1", upgradeClass: "naik-kelas" },
+  },
+  waktuPindah,
+);
+```
+
+### Asal masuk (`admitSource`)
+
+`createEncounterAdmitSource(code, text?)` atau `setInpatientHospitalization({ admitSource: code })`. Kode resmi (`ENCOUNTER_ADMIT_SOURCES`): `hosp-trans`, `emd` (dari IGD), `outp` (dari rawat jalan), `born`, `gp`, `mp`, `nursing`, `psych`, `rehab`, `other`, `TK000031` (Rujukan Poli), `EHA000001` (Kader/Komunitas), `TK000033` (LSM), `225323000`, `TK000070` (Posyandu), `1991000124105` (datang sendiri). CodeSystem diisi otomatis.
+
+### Cara pulang (`dischargeDisposition`)
+
+`createEncounterDischargeDisposition(code, text?)` atau `setInpatientHospitalization({ dischargeDisposition: code })`. Kode yang dipakai panduan Rawat Jalan, IGD, dan Rawat Inap:
+
+| Kode | Arti | CodeSystem |
+|---|---|---|
+| `home` | Pulang atas persetujuan dokter | HL7 |
+| `aadvice` | Pulang paksa / atas permintaan sendiri | HL7 |
+| `other-hcf` | Dirujuk | HL7 |
+| `oth` | Lain-lain (isi `text`) | HL7 |
+| `exp-lt48h` | Meninggal < 48 jam | Kemenkes |
+| `exp-gt48h` | Meninggal > 48 jam | Kemenkes |
+
+Kode lain di `ENCOUNTER_DISCHARGE_DISPOSITIONS`: `alt-home`, `hosp`, `long`, `exp`, `psy`, `rehab`, `snf`, `416462003` (SNOMED), `TK000323` (False emergency).
+
+### Peran diagnosis (`diagnosis.use`)
+
+Default `AD` (Admission diagnosis). Pakai `createEncounterDiagnosisUse(code)` untuk `DD` (Discharge diagnosis), `CC` (Chief complaint), `CM`, `pre-op`, `post-op`, atau `billing`:
+
+```ts
+builder.addDiagnosisByCondition(condition.id, { use: createEncounterDiagnosisUse("DD") });
+```
+
+### Riwayat DPJP (`participant.period`)
+
+Isi `period` pada `participant` untuk pergantian dokter penanggung jawab. `finish(at)` menutup periode participant yang masih terbuka.
+
+### Status Pengunjung (SIRS Online)
+
+Status Pengunjung (`facility`), Status Kunjungan Spesialisasi (`specialty`), dan Status Episode Pelayanan (`episode`) diisi dengan `new`, `returning`, atau `unknown` (CodeSystem `http://terminology.kemkes.go.id/CodeSystem/encounter-novelty`, Standar Terminologi v12.0 bagian 3.22-3.24):
+
+```ts
+builder.setNovelty({ facility: "returning", specialty: "new", episode: "new" });
+```
+
+> **Perhatian:** Kemenkes belum mempublikasikan URL extension ini di dokumentasi maupun Implementation Guide. SDK memakai `https://fhir.kemkes.go.id/r4/StructureDefinition/EncounterToFacility` (serta `EncounterToSpecialty` dan `EncounterToEpisode`), mengikuti pola extension resmi lain seperti `ServiceClass`. SATUSEHAT tidak menolak URL extension yang salah, jadi konfirmasikan URL ini ke tim SATUSEHAT (atau koleksi Postman resmi) sebelum dipakai untuk pelaporan. Bila berbeda, cukup ubah `ENCOUNTER_NOVELTY_EXTENSION_URLS` di `src/schemas/encounter-terminology.ts`.
 
 ## Method Utama
 
@@ -265,6 +433,12 @@ Aturan helper ini:
 - `setHospitalization(hospitalization)`
 - `setLength(quantity)`
 - `setServiceProvider(reference)`
+- `setLocationServiceClass(locationIndex, serviceClass)`
+- `setInpatientHospitalization(hospitalization)`
+- `advanceStatus(status, at)`
+- `moveToLocation(location, at)`
+- `finish(at)`
+- `setNovelty({ facility?, specialty?, episode? })`
 - `addIdentifier(identifier)`
 - `addParticipant(participant)`
 - `addReasonCode(reasonCode)`
@@ -289,6 +463,7 @@ Aturan helper ini:
 - `createEmergencyEncounterHistory(...)` mengembalikan `status`, `period`, `encounterClass`, `statusHistory`, dan `classHistory` sehingga bisa langsung di-spread ke `createEncounterBuilder(...)`.
 - `createEncounterStatusTimeline(...)` cocok untuk alur status berurutan yang tidak butuh helper class history seperti `createEmergencyEncounterHistory(...)`.
 - `build()` selalu memvalidasi draft akhir dengan `EncounterCreateSchema`.
+- `period.end` boleh kosong selama kunjungan masih berjalan (misalnya rawat inap). Encounter dengan status `finished` wajib menutup `period.end` dan seluruh periode `statusHistory` serta `classHistory`; aturan ini juga berlaku untuk `client.encounter.update(...)`.
 - Kalau `diagnosis` belum tersedia saat create awal, kamu bisa melewatkannya dulu lalu menambahkan lewat `addDiagnosis(...)`, `merge(...)`, atau update resource setelah `Condition` berhasil dibuat.
 
 ## Contoh Shortcut Antrean

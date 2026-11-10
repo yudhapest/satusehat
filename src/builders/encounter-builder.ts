@@ -1,4 +1,27 @@
 import {
+  ENCOUNTER_ADMIT_SOURCES,
+  ENCOUNTER_CLASSES,
+  ENCOUNTER_DIAGNOSIS_USES,
+  ENCOUNTER_DISCHARGE_DISPOSITIONS,
+  ENCOUNTER_INPATIENT_SERVICE_CLASSES,
+  ENCOUNTER_NOVELTY_CODES,
+  ENCOUNTER_NOVELTY_EXTENSION_URLS,
+  ENCOUNTER_OUTPATIENT_SERVICE_CLASSES,
+  ENCOUNTER_SERVICE_CLASS_EXTENSION_URL,
+  ENCOUNTER_UPGRADE_CLASSES,
+  HL7_ADMIT_SOURCE_SYSTEM,
+  HL7_DISCHARGE_DISPOSITION_SYSTEM,
+  type EncounterAdmitSourceCode,
+  type EncounterClassCode,
+  type EncounterDiagnosisUseCode,
+  type EncounterDischargeDispositionCode,
+  type EncounterInpatientServiceClass,
+  type EncounterNoveltyCode,
+  type EncounterNoveltyKind,
+  type EncounterOutpatientServiceClass,
+  type EncounterUpgradeClass,
+} from "../schemas/encounter-terminology";
+import {
   EncounterClassSchema,
   EncounterAdmitSourceSchema,
   EncounterCreateSchema,
@@ -19,31 +42,44 @@ import type {
   EncounterCreateInput,
   EncounterDischargeDisposition,
   EncounterDiagnosis,
+  EncounterExtension,
   EncounterHospitalization,
   EncounterIdentifier,
   EncounterLocation,
   EncounterLocationServiceClassExtension,
   EncounterParticipant,
+  EncounterPeriod,
   EncounterStatus,
   EncounterStatusHistory,
 } from "../schemas/encounter";
 
+/**
+ * Service class (kelas perawatan) of an Encounter location. Rawat jalan and IGD use "reguler" or
+ * "eksekutif"; rawat inap uses "1", "2", "3", "vip", "vvip", or KRIS ("kris-a", "kris-b",
+ * "kris-c"). `upgradeClass` defaults to "kelas-tetap".
+ */
+export type EncounterServiceClassInput =
+  | {
+      careSetting: "outpatient";
+      serviceClass: EncounterOutpatientServiceClass;
+      upgradeClass?: EncounterUpgradeClass;
+    }
+  | {
+      careSetting: "inpatient";
+      serviceClass: EncounterInpatientServiceClass;
+      upgradeClass?: EncounterUpgradeClass;
+    };
+
+/** Encounter.class coding for an official class code (section 3.4). */
+export function createEncounterClass(code: EncounterClassCode): EncounterClass {
+  const { system, display } = ENCOUNTER_CLASSES[code];
+  return { system, code, display };
+}
+
 const ENCOUNTER_CLASS_PRESETS = {
-  outpatient: {
-    system: "http://terminology.hl7.org/CodeSystem/v3-ActCode",
-    code: "AMB",
-    display: "ambulatory",
-  },
-  inpatient: {
-    system: "http://terminology.hl7.org/CodeSystem/v3-ActCode",
-    code: "IMP",
-    display: "inpatient encounter",
-  },
-  emergency: {
-    system: "http://terminology.hl7.org/CodeSystem/v3-ActCode",
-    code: "EMER",
-    display: "emergency",
-  },
+  outpatient: createEncounterClass("AMB"),
+  inpatient: createEncounterClass("IMP"),
+  emergency: createEncounterClass("EMER"),
 } satisfies Record<string, EncounterClass>;
 
 type EncounterBuilderCommonInput = {
@@ -71,6 +107,7 @@ type EncounterBuilderCommonInput = {
   location: EncounterLocation | EncounterLocation[];
   serviceProvider: Reference;
   partOf?: Reference;
+  extension?: EncounterExtension[];
 };
 
 type EncounterBuilderPresetInput = EncounterBuilderCommonInput & {
@@ -92,8 +129,8 @@ export type EncounterHospitalizationHelperInput = Omit<
   EncounterHospitalization,
   "admitSource" | "dischargeDisposition"
 > & {
-  admitSource?: EncounterAdmitSource | string;
-  dischargeDisposition?: EncounterDischargeDisposition | string;
+  admitSource?: EncounterAdmitSource | EncounterAdmitSourceCode;
+  dischargeDisposition?: EncounterDischargeDisposition | EncounterDischargeDispositionCode;
 };
 
 export interface EmergencyEncounterStatusStageInput {
@@ -118,7 +155,8 @@ export interface EmergencyEncounterHistoryInput {
     EmergencyEncounterStatusStageInput,
     ...EmergencyEncounterStatusStageInput[],
   ];
-  periodEnd: string;
+  /** Omit while the encounter is still ongoing; the last stage then stays open. */
+  periodEnd?: string;
   classStages?: [
     EmergencyEncounterClassStageInput,
     ...EmergencyEncounterClassStageInput[],
@@ -155,6 +193,7 @@ export interface EncounterLocationHelperInput {
   period?: EncounterLocation["period"];
   physicalType?: EncounterLocation["physicalType"];
   extension?: EncounterLocation["extension"];
+  serviceClass?: EncounterServiceClassInput;
 }
 
 export interface EncounterStatusTimelineStageInput {
@@ -167,7 +206,8 @@ export interface EncounterStatusTimelineInput {
     EncounterStatusTimelineStageInput,
     ...EncounterStatusTimelineStageInput[],
   ];
-  periodEnd: string;
+  /** Omit while the encounter is still ongoing; the last stage then stays open. */
+  periodEnd?: string;
 }
 
 export interface EncounterStatusTimelineResult {
@@ -194,12 +234,24 @@ function parseIsoDateTime(value: string, label: string): number {
   return timestamp;
 }
 
+function createPeriod(start: string, end: string | undefined): EncounterPeriod {
+  return end ? { start, end } : { start };
+}
+
+function closePeriod<TEntry extends { period: EncounterPeriod }>(
+  entry: TEntry,
+  end: string,
+): TEntry {
+  return entry.period.end ? entry : { ...entry, period: { ...entry.period, end } };
+}
+
 function assertAscendingTimeline(
   label: string,
   starts: { start: string }[],
-  periodEnd: string,
+  periodEnd: string | undefined,
 ): void {
-  const endTimestamp = parseIsoDateTime(periodEnd, `${label} periodEnd`);
+  const endTimestamp =
+    periodEnd === undefined ? undefined : parseIsoDateTime(periodEnd, `${label} periodEnd`);
 
   let previousTimestamp: number | undefined;
 
@@ -213,7 +265,7 @@ function assertAscendingTimeline(
       throw new RangeError(`${label} stages must be sorted in strictly ascending order`);
     }
 
-    if (currentTimestamp >= endTimestamp) {
+    if (endTimestamp !== undefined && currentTimestamp >= endTimestamp) {
       throw new RangeError(`${label} stage ${index + 1} must start before periodEnd`);
     }
 
@@ -243,14 +295,11 @@ function createStatusHistoryFromStages(
   stages:
     | EmergencyEncounterHistoryInput["statusStages"]
     | EncounterStatusTimelineInput["stages"],
-  periodEnd: string,
+  periodEnd: string | undefined,
 ): EncounterStatusHistory[] {
   return stages.map((stage, index) => ({
     status: stage.status,
-    period: {
-      start: stage.start,
-      end: stages[index + 1]?.start ?? periodEnd,
-    },
+    period: createPeriod(stage.start, stages[index + 1]?.start ?? periodEnd),
   }));
 }
 
@@ -259,14 +308,11 @@ function createClassHistoryFromStages(
     EmergencyEncounterClassStageInput,
     ...EmergencyEncounterClassStageInput[],
   ],
-  periodEnd: string,
+  periodEnd: string | undefined,
 ): EncounterClassHistory[] {
   return stages.map((stage, index) => ({
     class: resolveEncounterClassStage(stage),
-    period: {
-      start: stage.start,
-      end: stages[index + 1]?.start ?? periodEnd,
-    },
+    period: createPeriod(stage.start, stages[index + 1]?.start ?? periodEnd),
   }));
 }
 
@@ -278,13 +324,12 @@ function normalizeAdmitSource(
   }
 
   if (typeof admitSource === "string") {
+    if (Object.hasOwn(ENCOUNTER_ADMIT_SOURCES, admitSource)) {
+      return createEncounterAdmitSource(admitSource);
+    }
+
     return EncounterAdmitSourceSchema.parse({
-      coding: [
-        {
-          system: "http://terminology.hl7.org/CodeSystem/admit-source",
-          code: admitSource,
-        },
-      ],
+      coding: [{ system: HL7_ADMIT_SOURCE_SYSTEM, code: admitSource }],
     });
   }
 
@@ -299,17 +344,71 @@ function normalizeDischargeDisposition(
   }
 
   if (typeof dischargeDisposition === "string") {
+    if (Object.hasOwn(ENCOUNTER_DISCHARGE_DISPOSITIONS, dischargeDisposition)) {
+      return createEncounterDischargeDisposition(
+        dischargeDisposition as EncounterDischargeDispositionCode,
+      );
+    }
+
     return EncounterDischargeDispositionSchema.parse({
-      coding: [
-        {
-          system: "http://terminology.hl7.org/CodeSystem/discharge-disposition",
-          code: dischargeDisposition,
-        },
-      ],
+      coding: [{ system: HL7_DISCHARGE_DISPOSITION_SYSTEM, code: dischargeDisposition }],
     });
   }
 
   return EncounterDischargeDispositionSchema.parse(dischargeDisposition);
+}
+
+/**
+ * Builds Encounter.hospitalization.dischargeDisposition from a SATUSEHAT code.
+ * Use `text` for free text, for example with "oth" (lain-lain).
+ */
+export function createEncounterDischargeDisposition(
+  code: EncounterDischargeDispositionCode,
+  text?: string,
+): EncounterDischargeDisposition {
+  const { system, display } = ENCOUNTER_DISCHARGE_DISPOSITIONS[code];
+
+  return EncounterDischargeDispositionSchema.parse({
+    coding: [{ system, code, display }],
+    ...(text ? { text } : {}),
+  });
+}
+
+/** Builds Encounter.hospitalization.admitSource from a SATUSEHAT code (section 3.9). */
+export function createEncounterAdmitSource(
+  code: EncounterAdmitSourceCode,
+  text?: string,
+): EncounterAdmitSource {
+  const { system, display } = ENCOUNTER_ADMIT_SOURCES[code];
+
+  return EncounterAdmitSourceSchema.parse({
+    coding: [{ system, code, display }],
+    ...(text ? { text } : {}),
+  });
+}
+
+/** Builds Encounter.diagnosis.use from a diagnosis role code (section 3.18). */
+export function createEncounterDiagnosisUse(
+  code: EncounterDiagnosisUseCode,
+): EncounterDiagnosis["use"] {
+  const { system, display } = ENCOUNTER_DIAGNOSIS_USES[code];
+  return { coding: [{ system, code, display }] };
+}
+
+/**
+ * Builds a SIRS Online status extension (section 3.22-3.24): Status Pengunjung ("facility"),
+ * Status Kunjungan Spesialisasi ("specialty"), or Status Episode Pelayanan ("episode").
+ * The extension URLs are not published by Kemenkes yet; see ENCOUNTER_NOVELTY_EXTENSION_URLS.
+ */
+export function createEncounterNoveltyExtension(
+  kind: EncounterNoveltyKind,
+  code: EncounterNoveltyCode,
+): EncounterExtension {
+  if (!Object.hasOwn(ENCOUNTER_NOVELTY_CODES, code)) {
+    throw new RangeError(`Unknown encounter novelty code "${code}"`);
+  }
+
+  return { url: ENCOUNTER_NOVELTY_EXTENSION_URLS[kind], valueCode: code };
 }
 
 export function createEncounterIdentifier(
@@ -368,7 +467,16 @@ export function createEncounterLocation(
     ...(input.status ? { status: input.status } : {}),
     ...(input.period ? { period: input.period } : {}),
     ...(input.physicalType ? { physicalType: input.physicalType } : {}),
-    ...(input.extension ? { extension: input.extension } : {}),
+    ...(input.extension || input.serviceClass
+      ? {
+          extension: [
+            ...(input.extension ?? []),
+            ...(input.serviceClass
+              ? [createEncounterLocationServiceClassExtension(input.serviceClass)]
+              : []),
+          ],
+        }
+      : {}),
   });
 }
 
@@ -379,16 +487,8 @@ export function createEncounterClassFromConsultationMethod(
     RAJAL: ENCOUNTER_CLASS_PRESETS.outpatient,
     IGD: ENCOUNTER_CLASS_PRESETS.emergency,
     RANAP: ENCOUNTER_CLASS_PRESETS.inpatient,
-    HOMECARE: {
-      system: "http://terminology.hl7.org/CodeSystem/v3-ActCode",
-      code: "HH",
-      display: "home health",
-    },
-    TELEKONSULTASI: {
-      system: "http://terminology.hl7.org/CodeSystem/v3-ActCode",
-      code: "TELE",
-      display: "teleconsultation",
-    },
+    HOMECARE: createEncounterClass("HH"),
+    TELEKONSULTASI: createEncounterClass("VR"),
   } satisfies Record<EncounterConsultationMethod, EncounterClass>;
 
   return EncounterClassSchema.parse(encounterClassByMethod[method]);
@@ -443,10 +543,7 @@ export function createEmergencyEncounterHistory(
 
   return {
     status: lastStatusStage.status,
-    period: {
-      start: firstStatusStage.start,
-      end: input.periodEnd,
-    },
+    period: createPeriod(firstStatusStage.start, input.periodEnd),
     encounterClass: resolveEncounterClassStage(lastClassStage),
     statusHistory,
     classHistory,
@@ -456,7 +553,10 @@ export function createEmergencyEncounterHistory(
 export function createEncounterStatusTimeline(
   input: EncounterStatusTimelineInput,
 ): EncounterStatusTimelineResult {
-  const endTimestamp = parseIsoDateTime(input.periodEnd, "Encounter status periodEnd");
+  const endTimestamp =
+    input.periodEnd === undefined
+      ? undefined
+      : parseIsoDateTime(input.periodEnd, "Encounter status periodEnd");
   let previousTimestamp: number | undefined;
 
   input.stages.forEach((stage, index) => {
@@ -469,7 +569,7 @@ export function createEncounterStatusTimeline(
       throw new RangeError("Encounter status stages must be sorted in strictly ascending order");
     }
 
-    if (currentTimestamp > endTimestamp) {
+    if (endTimestamp !== undefined && currentTimestamp > endTimestamp) {
       throw new RangeError(`Encounter status stage ${index + 1} must start on or before periodEnd`);
     }
 
@@ -482,47 +582,87 @@ export function createEncounterStatusTimeline(
 
   return {
     status: lastStage.status,
-    period: {
-      start: firstStage.start,
-      end: input.periodEnd,
-    },
+    period: createPeriod(firstStage.start, input.periodEnd),
     statusHistory,
   };
 }
 
+/**
+ * Builds the SATUSEHAT ServiceClass extension for Encounter.location: the service class
+ * (kelas perawatan) and the class change indicator (kelas tetap, naik, turun, titip rawat).
+ */
 export function createEncounterLocationServiceClassExtension(
-  valueCode: string,
+  input: EncounterServiceClassInput,
 ): EncounterLocationServiceClassExtension {
+  const serviceClass =
+    input.careSetting === "outpatient"
+      ? { code: input.serviceClass, ...ENCOUNTER_OUTPATIENT_SERVICE_CLASSES[input.serviceClass] }
+      : { code: input.serviceClass, ...ENCOUNTER_INPATIENT_SERVICE_CLASSES[input.serviceClass] };
+  const upgradeClass = input.upgradeClass ?? "kelas-tetap";
+
   return EncounterLocationServiceClassExtensionSchema.parse({
-    url: "https://fhir.kemkes.go.id/r4/StructureDefinition/serviceClass",
+    url: ENCOUNTER_SERVICE_CLASS_EXTENSION_URL,
     extension: [
+      { url: "value", valueCodeableConcept: { coding: [serviceClass] } },
       {
-        url: "valueCode",
-        valueCode,
+        url: "upgradeClassIndicator",
+        valueCodeableConcept: {
+          coding: [{ code: upgradeClass, ...ENCOUNTER_UPGRADE_CLASSES[upgradeClass] }],
+        },
       },
     ],
   });
 }
 
+function isServiceClassExtension(extension: { url: string }): boolean {
+  return extension.url.toLowerCase() === ENCOUNTER_SERVICE_CLASS_EXTENSION_URL.toLowerCase();
+}
+
+/** Returns the location with its ServiceClass extension replaced (or added). */
 export function withEncounterLocationServiceClass(
   location: EncounterLocation,
-  valueCode: string,
+  input: EncounterServiceClassInput,
 ): EncounterLocation {
   return EncounterLocationSchema.parse({
     ...location,
     extension: [
-      ...(location.extension ?? []).filter(
-        (entry) =>
-          !(
-            typeof entry === "object" &&
-            entry !== null &&
-            "url" in entry &&
-            entry.url === "https://fhir.kemkes.go.id/r4/StructureDefinition/serviceClass"
-          ),
-      ),
-      createEncounterLocationServiceClassExtension(valueCode),
+      ...(location.extension ?? []).filter((entry) => !isServiceClassExtension(entry)),
+      createEncounterLocationServiceClassExtension(input),
     ],
   });
+}
+
+/**
+ * Moves the patient to another location (pindah ruang, naik/turun kelas): every location that is
+ * still open gets `period.end = at` and status "completed", then `next` is appended as the
+ * active location starting at `at`.
+ */
+export function moveEncounterLocation(
+  locations: EncounterLocation[],
+  next: EncounterLocation | EncounterLocationHelperInput,
+  at: string,
+): EncounterLocation[] {
+  parseIsoDateTime(at, "Encounter location move time");
+
+  const closed = locations.map((location) =>
+    location.period?.end
+      ? location
+      : EncounterLocationSchema.parse({
+          ...location,
+          status: "completed",
+          period: { ...location.period, end: at },
+        }),
+  );
+  const nextLocation = "locationId" in next ? createEncounterLocation(next) : next;
+
+  return [
+    ...closed,
+    EncounterLocationSchema.parse({
+      ...nextLocation,
+      status: "active",
+      period: { start: at },
+    }),
+  ];
 }
 
 export class EncounterBuilder {
@@ -565,6 +705,7 @@ export class EncounterBuilder {
       location: toArray(input.location),
       serviceProvider: input.serviceProvider,
       ...(input.partOf ? { partOf: input.partOf } : {}),
+      ...(input.extension ? { extension: input.extension } : {}),
     });
   }
 
@@ -711,14 +852,86 @@ export class EncounterBuilder {
     return this;
   }
 
-  public setLocationServiceClass(locationIndex: number, valueCode: string): this {
+  public setLocationServiceClass(locationIndex: number, input: EncounterServiceClassInput): this {
     const location = this.draft.location[locationIndex];
 
     if (!location) {
       throw new RangeError(`Encounter location at index ${locationIndex} does not exist`);
     }
 
-    this.draft.location[locationIndex] = withEncounterLocationServiceClass(location, valueCode);
+    this.draft.location[locationIndex] = withEncounterLocationServiceClass(location, input);
+    return this;
+  }
+
+  /**
+   * Moves to the next status at `at` (for example arrived -> in-progress): the open status
+   * history entry gets `period.end = at` and a new open entry starts.
+   */
+  public advanceStatus(status: EncounterStatus, at: string): this {
+    parseIsoDateTime(at, "Encounter status time");
+
+    this.draft.statusHistory = [
+      ...this.draft.statusHistory.map((entry) => closePeriod(entry, at)),
+      { status, period: { start: at } },
+    ];
+    this.draft.status = status;
+    return this;
+  }
+
+  /**
+   * Finishes the encounter at `at`: closes every open status, class, location, and participant
+   * period, adds the "finished" status, and sets `period.end`.
+   */
+  public finish(at: string): this {
+    parseIsoDateTime(at, "Encounter finish time");
+
+    const statusHistory = this.draft.statusHistory.map((entry) => closePeriod(entry, at));
+    const alreadyFinished = statusHistory[statusHistory.length - 1]?.status === "finished";
+
+    this.draft.statusHistory = alreadyFinished
+      ? statusHistory
+      : [...statusHistory, { status: "finished", period: { start: at, end: at } }];
+    this.draft.classHistory = this.draft.classHistory.map((entry) => closePeriod(entry, at));
+    this.draft.location = this.draft.location.map((location) =>
+      location.period && !location.period.end
+        ? { ...location, status: "completed", period: { ...location.period, end: at } }
+        : location,
+    );
+    this.draft.participant = this.draft.participant?.map((participant) =>
+      participant.period && !participant.period.end
+        ? { ...participant, period: { ...participant.period, end: at } }
+        : participant,
+    );
+    this.draft.period = { ...this.draft.period, end: this.draft.period.end ?? at };
+    this.draft.status = "finished";
+    return this;
+  }
+
+  /**
+   * Sets the SIRS Online status extensions: Status Pengunjung (`facility`), Status Kunjungan
+   * Spesialisasi (`specialty`), and Status Episode Pelayanan (`episode`). Existing values of the
+   * given kinds are replaced.
+   */
+  public setNovelty(statuses: {
+    [Kind in EncounterNoveltyKind]?: EncounterNoveltyCode | undefined;
+  }): this {
+    const entries = (
+      Object.entries(statuses) as Array<[EncounterNoveltyKind, EncounterNoveltyCode | undefined]>
+    ).filter((entry): entry is [EncounterNoveltyKind, EncounterNoveltyCode] => !!entry[1]);
+    const replacedUrls = new Set<string>(
+      entries.map(([kind]) => ENCOUNTER_NOVELTY_EXTENSION_URLS[kind]),
+    );
+
+    this.draft.extension = [
+      ...(this.draft.extension ?? []).filter((entry) => !replacedUrls.has(entry.url)),
+      ...entries.map(([kind, code]) => createEncounterNoveltyExtension(kind, code)),
+    ];
+    return this;
+  }
+
+  /** Closes the current location and continues in `next` from `at`. See moveEncounterLocation. */
+  public moveToLocation(next: EncounterLocation | EncounterLocationHelperInput, at: string): this {
+    this.draft.location = moveEncounterLocation(this.draft.location, next, at);
     return this;
   }
 

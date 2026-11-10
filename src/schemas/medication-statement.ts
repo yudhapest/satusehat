@@ -78,8 +78,15 @@ export const MedicationStatementSearchParamsSchema = z
     });
   });
 
+// Contained resources, for example the Medication referenced as "#id" by medicationReference
+// when the drug came from the same facility (Ketentuan Pengisian Riwayat Pengobatan).
+export const MedicationStatementContainedResourceSchema = z
+  .object({ resourceType: z.string().min(1), id: z.string().min(1) })
+  .passthrough();
+
 const MedicationStatementBaseObjectSchema = z.object({
   resourceType: z.literal("MedicationStatement"),
+  contained: z.array(MedicationStatementContainedResourceSchema).optional(),
   identifier: z.array(MedicationStatementIdentifierSchema).optional(),
   basedOn: z.array(ReferenceSchema).optional(),
   partOf: z.array(ReferenceSchema).optional(),

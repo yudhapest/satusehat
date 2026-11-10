@@ -122,10 +122,12 @@ export const ObservationBaseSchema = z.object({
   resourceType: z.literal("Observation"),
   identifier: z.array(ObservationIdentifierSchema).optional(),
   basedOn: z.array(ReferenceSchema).optional(),
+  partOf: z.array(ReferenceSchema).optional(),
   status: ObservationStatusSchema,
   category: z.array(CodeableConceptSchema).optional(),
   code: ObservationRequiredCodeableConceptSchema,
   subject: ReferenceSchema,
+  focus: z.array(ReferenceSchema).optional(),
   encounter: ReferenceSchema,
   effectiveDateTime: z.string().optional(),
   effectivePeriod: PeriodSchema.optional(),
@@ -139,6 +141,15 @@ export const ObservationBaseSchema = z.object({
   valueBoolean: z.boolean().optional(),
   valueInteger: z.number().int().optional(),
   valueRange: ObservationRangeSchema.optional(),
+  valueRatio: z
+    .object({
+      numerator: ObservationQuantitySchema.optional(),
+      denominator: ObservationQuantitySchema.optional(),
+    })
+    .optional(),
+  valueTime: z.string().optional(),
+  valueDateTime: z.string().optional(),
+  valuePeriod: PeriodSchema.optional(),
   dataAbsentReason: CodeableConceptSchema.optional(),
   interpretation: z.array(CodeableConceptSchema).optional(),
   note: z.array(ObservationNoteSchema).optional(),
@@ -152,7 +163,20 @@ export const ObservationBaseSchema = z.object({
   component: z.array(ObservationComponentSchema).optional(),
 });
 
+// Drafts (builders may add the performer later).
 export const ObservationCreateSchema = ObservationBaseSchema;
+
+// What client.observation.create/update send: the SATUSEHAT guides mark Observation.performer as
+// mandatory. Stored resources are still read leniently.
+export const ObservationSubmitSchema = ObservationBaseSchema.superRefine((value, ctx) => {
+  if (!value.performer?.length) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Observation.performer is required by SATUSEHAT",
+      path: ["performer"],
+    });
+  }
+});
 
 export const ObservationSchema = ObservationBaseSchema.extend({
   id: z.string().min(1),

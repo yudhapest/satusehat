@@ -398,11 +398,32 @@ const encounterFixtures = {
         },
         extension: [
           {
-            url: "https://fhir.kemkes.go.id/r4/StructureDefinition/serviceClass",
+            url: "https://fhir.kemkes.go.id/r4/StructureDefinition/ServiceClass",
             extension: [
               {
-                url: "valueCode",
-                valueCode: "kelas-1",
+                url: "value",
+                valueCodeableConcept: {
+                  coding: [
+                    {
+                      system:
+                        "http://terminology.kemkes.go.id/CodeSystem/locationServiceClass-Inpatient",
+                      code: "1",
+                      display: "Kelas 1",
+                    },
+                  ],
+                },
+              },
+              {
+                url: "upgradeClassIndicator",
+                valueCodeableConcept: {
+                  coding: [
+                    {
+                      system: "http://terminology.kemkes.go.id/CodeSystem/locationUpgradeClass",
+                      code: "kelas-tetap",
+                      display: "Kelas Tetap Perawatan",
+                    },
+                  ],
+                },
               },
             ],
           },

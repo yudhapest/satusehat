@@ -40,9 +40,16 @@ export const AllergyIntoleranceNoteSchema = z.object({
   text: z.string().min(1),
 });
 
+// A manifestation needs a coding or a text. The SATUSEHAT sandbox currently rejects every coding
+// system on reaction.manifestation (RuleNumber 11149) and only accepts text.
+export const AllergyIntoleranceManifestationSchema = CodeableConceptSchema.refine(
+  (value) => (value.coding?.length ?? 0) > 0 || Boolean(value.text),
+  "AllergyIntolerance.reaction.manifestation needs a coding or a text",
+);
+
 export const AllergyIntoleranceReactionSchema = z.object({
   substance: CodeableConceptSchema.optional(),
-  manifestation: z.array(AllergyIntoleranceRequiredCodeableConceptSchema).min(1),
+  manifestation: z.array(AllergyIntoleranceManifestationSchema).min(1),
   description: z.string().optional(),
   onset: z.string().optional(),
   severity: z.enum(["mild", "moderate", "severe"]).optional(),
@@ -102,7 +109,27 @@ export const AllergyIntoleranceBaseSchema = z.object({
   reaction: z.array(AllergyIntoleranceReactionSchema).optional(),
 });
 
-export const AllergyIntoleranceCreateSchema = AllergyIntoleranceBaseSchema;
+// The SATUSEHAT anamnesis guides (Rawat Jalan, IGD, Rawat Inap) mark category, encounter, and
+// recorder as mandatory for Riwayat Alergi. Stored resources are still read leniently.
+export const AllergyIntoleranceCreateSchema = AllergyIntoleranceBaseSchema.superRefine(
+  (value, ctx) => {
+    const required = [
+      ["category", value.category?.length],
+      ["encounter", value.encounter],
+      ["recorder", value.recorder],
+    ] as const;
+
+    required.forEach(([field, present]) => {
+      if (!present) {
+        ctx.addIssue({
+          code: "custom",
+          message: `AllergyIntolerance.${field} is required by SATUSEHAT`,
+          path: [field],
+        });
+      }
+    });
+  },
+);
 
 export const AllergyIntoleranceSchema = AllergyIntoleranceBaseSchema.extend({
   id: z.string().min(1),
