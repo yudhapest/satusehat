@@ -75,6 +75,7 @@ export function createServiceRequestClient(transport: Transport) {
         path: `/ServiceRequest/${params.id}`,
         body: input.body,
         bodySchema: ServiceRequestCreateSchema,
+        resourceId: params.id,
         responseSchema: ServiceRequestSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

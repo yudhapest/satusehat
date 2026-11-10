@@ -76,6 +76,7 @@ export function createCompositionClient(transport: Transport): CompositionClient
         path: `/Composition/${params.id}`,
         body: input.body,
         bodySchema: CompositionCreateSchema,
+        resourceId: params.id,
         responseSchema: CompositionSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

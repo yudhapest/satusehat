@@ -30,6 +30,11 @@ export interface RequestOptions<
   querySchema?: TQuerySchema;
   body?: unknown;
   bodySchema?: TBodySchema;
+  /**
+   * Resource id for PUT requests. SATUSEHAT requires the id inside the body; it is set after
+   * validation so body schemas that do not declare `id` do not strip it.
+   */
+  resourceId?: string;
   headers?: HeadersInit;
   signal?: AbortSignal;
   responseSchema: TResponseSchema;
@@ -74,7 +79,13 @@ export function createTransport(options: TransportOptions): Transport {
       requestOptions: RequestOptions<TQuerySchema, TBodySchema, TResponseSchema>,
     ): Promise<InferSchema<TResponseSchema>> {
       const query = validateQuery(requestOptions.querySchema, requestOptions.query);
-      const body = validateBody(requestOptions.bodySchema, requestOptions.body);
+      const validatedBody = validateBody(requestOptions.bodySchema, requestOptions.body);
+      const body =
+        requestOptions.resourceId !== undefined &&
+        typeof validatedBody === "object" &&
+        validatedBody !== null
+          ? { ...validatedBody, id: requestOptions.resourceId }
+          : validatedBody;
       const url = new URL(`${baseUrl}${requestOptions.path}`);
 
       appendQuery(url, query);

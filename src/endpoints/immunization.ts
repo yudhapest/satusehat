@@ -83,6 +83,7 @@ export function createImmunizationClient(transport: Transport) {
         path: `/Immunization/${params.id}`,
         body: input.body,
         bodySchema: ImmunizationCreateSchema,
+        resourceId: params.id,
         responseSchema: ImmunizationSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

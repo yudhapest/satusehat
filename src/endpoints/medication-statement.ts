@@ -75,6 +75,7 @@ export function createMedicationStatementClient(transport: Transport) {
         path: `/MedicationStatement/${params.id}`,
         body: input.body,
         bodySchema: MedicationStatementCreateSchema,
+        resourceId: params.id,
         responseSchema: MedicationStatementSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

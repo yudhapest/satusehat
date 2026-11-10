@@ -75,6 +75,7 @@ export function createImagingStudyClient(transport: Transport) {
         path: `/ImagingStudy/${params.id}`,
         body: input.body,
         bodySchema: ImagingStudyCreateSchema,
+        resourceId: params.id,
         responseSchema: ImagingStudySchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

@@ -75,6 +75,7 @@ export function createConditionClient(transport: Transport) {
         path: `/Condition/${params.id}`,
         body: input.body,
         bodySchema: ConditionCreateSchema,
+        resourceId: params.id,
         responseSchema: ConditionSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

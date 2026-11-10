@@ -75,6 +75,7 @@ export function createAllergyIntoleranceClient(transport: Transport) {
         path: `/AllergyIntolerance/${params.id}`,
         body: input.body,
         bodySchema: AllergyIntoleranceCreateSchema,
+        resourceId: params.id,
         responseSchema: AllergyIntoleranceSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

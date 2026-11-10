@@ -75,6 +75,7 @@ export function createDiagnosticReportClient(transport: Transport) {
         path: `/DiagnosticReport/${params.id}`,
         body: input.body,
         bodySchema: DiagnosticReportCreateSchema,
+        resourceId: params.id,
         responseSchema: DiagnosticReportSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });
