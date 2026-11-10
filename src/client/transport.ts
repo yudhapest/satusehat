@@ -2,7 +2,12 @@ import { type ZodTypeAny } from "zod";
 
 import { resolveAccessToken } from "./auth";
 import { SatuSehatApiError, SatuSehatValidationError } from "../core/errors";
-import { type AccessTokenProvider, type FetchLike, type QueryParams } from "../core/types";
+import {
+  type AccessTokenProvider,
+  type FetchLike,
+  type HeadersInit,
+  type QueryParams,
+} from "../core/types";
 
 export interface TransportOptions {
   baseUrl: string;

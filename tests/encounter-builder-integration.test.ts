@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import {
   createEncounterBuilder,
@@ -6,6 +6,7 @@ import {
 } from "../src";
 import type { EncounterCreateInput } from "../src";
 import { createEncounterFixture } from "./fixtures/encounter";
+import { expect } from "./helpers/expect";
 
 function toBuilderInput(fixture: EncounterCreateInput) {
   return {

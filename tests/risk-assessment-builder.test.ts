@@ -1,6 +1,7 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import { createRiskAssessmentBuilder } from "../src";
+import { expect } from "./helpers/expect";
 
 describe("risk assessment builder", () => {
   test("builds a risk assessment draft with predictions and supporting references", () => {

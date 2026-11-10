@@ -1,6 +1,7 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import { createLaboratoryPanelBuilder } from "../src";
+import { expect } from "./helpers/expect";
 
 describe("laboratory panel builder", () => {
   test("builds a lab panel flow with multiple observations", () => {

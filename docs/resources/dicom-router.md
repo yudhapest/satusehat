@@ -16,9 +16,11 @@ Response dikembalikan sebagai `string` agar bisa langsung disimpan ke file oleh 
 ## Download Config
 
 ```ts
+import { writeFile } from "node:fs/promises";
+
 const dockerCompose = await client.dicomRouter.downloadConfig();
 
-await Bun.write("./docker-compose.yml", dockerCompose);
+await writeFile("./docker-compose.yml", dockerCompose);
 ```
 
 ## Override Base URL

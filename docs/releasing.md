@@ -1,39 +1,71 @@
 # Releasing
 
-Repo ini memakai [Changesets](https://github.com/changesets/changesets) untuk:
+Fork ini tidak di-publish ke npm. Setiap push tag `v*`, workflow `Release` menjalankan `npm run verify`, mem-build tarball dengan `npm pack`, lalu melampirkannya ke GitHub Release. Consumer (misalnya `web-simrs-fastify`) menginstall dari URL tarball itu.
 
-- generate release notes
-- membuat release pull request otomatis
-- publish package ke npm
-- membuat GitHub Release setiap publish berhasil
+Kenapa tidak `npm install github:yudhapest/satusehat`? `dist/` tidak di-commit, sementara npm 11 gagal menyiapkan dependency git yang perlu di-build (`--allow-scripts is not allowed in project-scoped installs`). Tarball sudah berisi `dist/`, jadi tidak ada build di sisi consumer.
 
-## Setup GitHub Secrets
+Versi dan `CHANGELOG.md` tetap dikelola dengan [Changesets](https://github.com/changesets/changesets).
 
-Tambahkan secret berikut di repository GitHub:
-
-- `NPM_TOKEN`: token npm dengan hak publish ke package `@digitalmedika/satusehat`
-
-`GITHUB_TOKEN` sudah disediakan otomatis oleh GitHub Actions.
-
-## Cara pakai
+## Cara rilis
 
 1. Setiap ada perubahan yang ingin masuk release, jalankan:
 
 ```bash
-bun run changeset
+npm run changeset
 ```
 
 2. Isi ringkasan perubahan. Isi ini akan dipakai sebagai release notes.
 
-3. Commit file markdown yang dibuat di folder `.changeset/`.
+3. Saat siap rilis, naikkan versi dan update `CHANGELOG.md`:
 
-4. Setelah changeset masuk ke branch `main`, workflow `Release` akan membuat atau mengupdate release pull request.
+```bash
+npm run version-packages
+npm install          # sinkronkan package-lock.json
+npm run verify       # typecheck + test + build
+```
 
-5. Merge release pull request tersebut. Setelah merge:
+4. Commit, buat tag (harus sama dengan `version` di `package.json`), lalu push:
 
-- versi di `package.json` akan dipakai untuk publish ke npm
-- `CHANGELOG.md` akan terupdate
-- GitHub Release akan dibuat
+```bash
+git commit -am "chore: release v0.10.4"
+git tag v0.10.4
+git push origin main --tags
+```
+
+5. Setelah workflow selesai, update dependency di consumer:
+
+```bash
+npm install https://github.com/yudhapest/satusehat/releases/download/v0.10.4/digitalmedika-satusehat-0.10.4.tgz
+```
+
+## Development bersama consumer
+
+Untuk mencoba perubahan di consumer sebelum rilis, buat tarball lokal:
+
+```bash
+npm pack                                   # menghasilkan digitalmedika-satusehat-<versi>.tgz
+cd ../web-simrs-fastify
+npm install ../satusehat/digitalmedika-satusehat-<versi>.tgz
+```
+
+## Sinkron dengan upstream
+
+Repo asal ada di remote `upstream` (`digitalmedika/satusehat`):
+
+```bash
+git fetch upstream
+git merge upstream/main
+```
+
+Test baru dari upstream masih memakai `bun:test`. Setelah merge, ganti import-nya:
+
+```ts
+import { describe, test } from "node:test";
+
+import { expect } from "./helpers/expect";
+```
+
+Kalau upstream memakai `mock(...)` dari `bun:test`, ganti dengan `mock.fn(...)` dari `node:test`. Kalau upstream mengubah file workflow atau `bun.lock`, pertahankan versi fork (hapus `bun.lock`), lalu jalankan `npm run verify`.
 
 ## Release Notes
 

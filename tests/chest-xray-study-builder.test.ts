@@ -1,6 +1,7 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import { createChestXRayStudyBuilder } from "../src";
+import { expect } from "./helpers/expect";
 
 describe("chest xray study builder", () => {
   test("creates a chest x-ray workflow with radiology defaults", () => {

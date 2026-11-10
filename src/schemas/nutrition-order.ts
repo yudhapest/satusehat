@@ -135,7 +135,7 @@ export const NutritionOrderNoteSchema = z.object({
 const NutritionOrderSearchParamsObjectSchema = z.object({
   patient: z.string().min(1).optional(),
   subject: z.string().min(1).optional(),
-  encounter: z.string().uuid().optional(),
+  encounter: z.guid().optional(),
 });
 
 export const NutritionOrderSearchParamsSchema = NutritionOrderSearchParamsObjectSchema
@@ -163,7 +163,7 @@ export const NutritionOrderSearchParamsSchema = NutritionOrderSearchParamsObject
 export const NutritionOrderNormalizedSearchParamsSchema = z
   .object({
     patient: z.string().min(1).optional(),
-    encounter: z.string().uuid().optional(),
+    encounter: z.guid().optional(),
   })
   .superRefine((value, ctx) => {
     if (value.patient || value.encounter) {

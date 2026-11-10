@@ -1,6 +1,7 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import { createCompleteBloodCountPanelBuilder } from "../src";
+import { expect } from "./helpers/expect";
 
 describe("complete blood count panel builder", () => {
   test("creates a CBC workflow with default observations and auto-units", () => {

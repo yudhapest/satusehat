@@ -60,8 +60,8 @@ export const DiagnosticReportPatchSchema = z.array(DiagnosticReportPatchOperatio
 export const DiagnosticReportSearchParamsSchema = z
   .object({
     subject: z.string().min(1).optional(),
-    encounter: z.string().uuid().optional(),
-    specimen: z.string().uuid().optional(),
+    encounter: z.guid().optional(),
+    specimen: z.guid().optional(),
   })
   .superRefine((value, ctx) => {
     const hasSubject = Boolean(value.subject);

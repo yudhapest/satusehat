@@ -1,10 +1,11 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import { EncounterCreateSchema } from "../src/schemas/encounter";
 import {
   createEncounterFixture,
   encounterFixtureUseCases,
 } from "./fixtures/encounter";
+import { expect } from "./helpers/expect";
 
 describe("encounter fixtures", () => {
   test("provide schema-valid SATUSEHAT payloads for outpatient, inpatient, and emergency use cases", () => {

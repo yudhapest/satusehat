@@ -1,10 +1,11 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import {
   createEncounterBuilder,
   createEncounterConditionBuilder,
 } from "../src";
 import type { ConditionCreateInput, EncounterCreateInput } from "../src";
+import { expect } from "./helpers/expect";
 
 const ENCOUNTER_UUID = "urn:uuid:46cd6c7b-706a-45cc-be83-6447c4863a32";
 const CONDITION_UUID = "urn:uuid:d36831ce-18fc-4218-95b0-f7872c99df07";
@@ -496,10 +497,13 @@ describe("encounter bundle transaction integration", () => {
 
     expect(response.status).toBe(400);
 
-    const responseBody = await response.json();
+    const responseBody = (await response.json()) as {
+      resourceType: string;
+      issue: Array<{ severity: string; diagnostics: string }>;
+    };
     expect(responseBody.resourceType).toBe("OperationOutcome");
-    expect(responseBody.issue[0].severity).toBe("error");
-    expect(responseBody.issue[0].diagnostics).toContain("Invalid reference format");
+    expect(responseBody.issue[0]?.severity).toBe("error");
+    expect(responseBody.issue[0]?.diagnostics).toContain("Invalid reference format");
   });
 
   test("condition references the encounter and encounter diagnosis references the condition via urn:uuid", () => {

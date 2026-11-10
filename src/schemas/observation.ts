@@ -91,8 +91,8 @@ export const ObservationPatchSchema = z.array(ObservationPatchOperationSchema).m
 export const ObservationSearchParamsSchema = z
   .object({
     subject: z.string().min(1).optional(),
-    encounter: z.string().uuid().optional(),
-    "based-on": z.string().uuid().optional(),
+    encounter: z.guid().optional(),
+    "based-on": z.guid().optional(),
   })
   .superRefine((value, ctx) => {
     const hasSubject = Boolean(value.subject);

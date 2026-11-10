@@ -1,6 +1,7 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import { createEncounterQueueBuilder } from "../src";
+import { expect } from "./helpers/expect";
 
 describe("encounter queue builder", () => {
   test("builds rawat jalan antrean drafts per stage and finishes with diagnosis linkage", () => {

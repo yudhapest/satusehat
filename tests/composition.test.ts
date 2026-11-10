@@ -1,7 +1,8 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import { createSatuSehatClient, SatuSehatValidationError } from "../src";
 import type { CompositionCreateInput } from "../src";
+import { expect } from "./helpers/expect";
 
 const compositionIdentifier = {
   system: "http://sys-ids.kemkes.go.id/composition/10000004",

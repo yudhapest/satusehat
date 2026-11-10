@@ -1,10 +1,11 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import {
   createSatuSehatClient,
   SatuSehatValidationError,
   type MedicationStatementCreateInput,
 } from "../src";
+import { expect } from "./helpers/expect";
 
 const medicationStatementPayload: MedicationStatementCreateInput = {
   resourceType: "MedicationStatement",

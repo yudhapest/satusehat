@@ -1,6 +1,7 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import { createOrganizationBuilder, createSatuSehatClient, SatuSehatValidationError } from "../src";
+import { expect } from "./helpers/expect";
 
 describe("organization builder", () => {
   test("adds repeatable fields such as address and alias", () => {

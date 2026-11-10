@@ -1,7 +1,8 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import { createSatuSehatClient } from "../src";
 import { SatuSehatValidationError } from "../src/core/errors";
+import { expect } from "./helpers/expect";
 
 describe("patient.search", () => {
   test("throws when no required search parameter is provided", async () => {

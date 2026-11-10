@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
 
 import {
   createSatuSehatClient,
@@ -6,6 +6,7 @@ import {
   SatuSehatValidationError,
 } from "../src";
 import type { QuestionnaireResponseCreateInput } from "../src";
+import { expect } from "./helpers/expect";
 
 const questionnaireResponsePayload: QuestionnaireResponseCreateInput = {
   resourceType: "QuestionnaireResponse",

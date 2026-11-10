@@ -138,7 +138,7 @@ export const CompositionPatchSchema = z.array(CompositionPatchOperationSchema).m
 export const CompositionSearchParamsSchema = z
   .object({
     subject: z.string().min(1).optional(),
-    encounter: z.string().uuid().optional(),
+    encounter: z.guid().optional(),
   })
   .superRefine((value, ctx) => {
     if (value.subject || value.encounter) {
