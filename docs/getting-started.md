@@ -5,7 +5,7 @@
 Untuk consumer package:
 
 ```bash
-npm install https://github.com/yudhapest/satusehat/releases/download/v0.10.3/digitalmedika-satusehat-0.10.3.tgz
+npm install https://github.com/yudhapest/satusehat/releases/download/v0.11.0/digitalmedika-satusehat-0.11.0.tgz
 ```
 
 Untuk development repository ini:

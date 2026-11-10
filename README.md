@@ -42,7 +42,7 @@ Helper builder yang saat ini tersedia:
 Fork ini tidak di-publish ke npm. Setiap tag rilis, CI mem-build tarball dan melampirkannya ke GitHub Release. Install dari URL tarball tersebut:
 
 ```bash
-npm install https://github.com/yudhapest/satusehat/releases/download/v0.10.3/digitalmedika-satusehat-0.10.3.tgz
+npm install https://github.com/yudhapest/satusehat/releases/download/v0.11.0/digitalmedika-satusehat-0.11.0.tgz
 ```
 
 Jangan install via `github:yudhapest/satusehat`: repo tidak menyimpan `dist/`, dan npm 11 gagal menyiapkan dependency git yang perlu di-build.

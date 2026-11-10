@@ -1,6 +1,6 @@
 {
   "name": "@digitalmedika/satusehat",
-  "version": "0.10.3",
+  "version": "0.11.0",
   "description": "Type-safe TypeScript wrapper for SATUSEHAT API.",
   "author": "Digital Medika",
   "type": "module",
