@@ -1,9 +1,8 @@
 import { z } from "zod";
 
 import {
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
+  createSearchBundleSchema,
   IdentifierSchema,
   MetaSchema,
   PeriodSchema,
@@ -104,13 +103,7 @@ export const ClinicalImpressionUpdateParamsSchema = z.object({
   id: z.string().min(1),
 });
 
-export const ClinicalImpressionBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(ClinicalImpressionSchema)).optional(),
-});
+export const ClinicalImpressionBundleSchema = createSearchBundleSchema(ClinicalImpressionSchema);
 
 export type ClinicalImpressionIdentifier = z.infer<typeof ClinicalImpressionIdentifierSchema>;
 export type ClinicalImpressionCoding = z.infer<typeof ClinicalImpressionCodingSchema>;

@@ -1,10 +1,9 @@
 import { z } from "zod";
 
 import {
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
   ContactPointSchema,
+  createSearchBundleSchema,
   IdentifierSchema,
   MetaSchema,
   PeriodSchema,
@@ -165,13 +164,7 @@ export const SpecimenUpdateParamsSchema = z.object({
   id: z.string().min(1),
 });
 
-export const SpecimenBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(SpecimenSchema)).optional(),
-});
+export const SpecimenBundleSchema = createSearchBundleSchema(SpecimenSchema);
 
 export type SpecimenIdentifier = z.infer<typeof SpecimenIdentifierSchema>;
 export type SpecimenStatus = z.infer<typeof SpecimenStatusSchema>;

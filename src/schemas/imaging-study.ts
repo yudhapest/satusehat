@@ -1,9 +1,8 @@
 import { z } from "zod";
 
 import {
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
+  createSearchBundleSchema,
   IdentifierSchema,
   MetaSchema,
   ReferenceSchema,
@@ -130,13 +129,7 @@ export const ImagingStudyUpdateParamsSchema = z.object({
   id: z.string().min(1),
 });
 
-export const ImagingStudyBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(ImagingStudySchema)).optional(),
-});
+export const ImagingStudyBundleSchema = createSearchBundleSchema(ImagingStudySchema);
 
 export type ImagingStudyIdentifier = z.infer<typeof ImagingStudyIdentifierSchema>;
 export type ImagingStudyStatus = z.infer<typeof ImagingStudyStatusSchema>;

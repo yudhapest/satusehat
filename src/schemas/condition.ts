@@ -1,9 +1,8 @@
 import { z } from "zod";
 
 import {
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
+  createSearchBundleSchema,
   IdentifierSchema,
   MetaSchema,
   PeriodSchema,
@@ -125,13 +124,7 @@ export const ConditionUpdateParamsSchema = z.object({
   id: z.string().min(1),
 });
 
-export const ConditionBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(ConditionSchema)).optional(),
-});
+export const ConditionBundleSchema = createSearchBundleSchema(ConditionSchema);
 
 export type ConditionIdentifier = z.infer<typeof ConditionIdentifierSchema>;
 export type ConditionCoding = z.infer<typeof ConditionCodingSchema>;

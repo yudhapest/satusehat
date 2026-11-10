@@ -1,9 +1,8 @@
 import { z } from "zod";
 
 import {
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
+  createSearchBundleSchema,
   IdentifierSchema,
   MetaSchema,
   PeriodSchema,
@@ -187,13 +186,7 @@ export const ServiceRequestUpdateParamsSchema = z.object({
   id: z.string().min(1),
 });
 
-export const ServiceRequestBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(ServiceRequestSchema)).optional(),
-});
+export const ServiceRequestBundleSchema = createSearchBundleSchema(ServiceRequestSchema);
 
 export type ServiceRequestIdentifier = z.infer<typeof ServiceRequestIdentifierSchema>;
 export type ServiceRequestStatus = z.infer<typeof ServiceRequestStatusSchema>;

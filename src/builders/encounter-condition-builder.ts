@@ -20,7 +20,7 @@ const DEFAULT_CONDITION_CATEGORY = {
 const DEFAULT_ENCOUNTER_DIAGNOSIS_USE = {
   coding: [
     {
-      system: "https://www.hl7.org/fhir/Codesystem-diagnosis-role",
+      system: "http://terminology.hl7.org/CodeSystem/diagnosis-role",
       code: "AD",
       display: "Admission diagnosis",
     },

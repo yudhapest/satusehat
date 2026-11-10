@@ -1,9 +1,8 @@
 import { z } from "zod";
 
 import {
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
+  createSearchBundleSchema,
   IdentifierSchema,
   MetaSchema,
   ReferenceSchema,
@@ -192,13 +191,7 @@ export const ImmunizationUpdateParamsSchema = z.object({
   id: z.string().min(1),
 });
 
-export const ImmunizationBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(ImmunizationSchema)).optional(),
-});
+export const ImmunizationBundleSchema = createSearchBundleSchema(ImmunizationSchema);
 
 export type ImmunizationIdentifier = z.infer<typeof ImmunizationIdentifierSchema>;
 export type ImmunizationStatus = z.infer<typeof ImmunizationStatusSchema>;

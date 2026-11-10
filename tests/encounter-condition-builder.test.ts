@@ -47,6 +47,17 @@ describe("encounter -> condition builder", () => {
     expect(diagnosis.rank).toBe(1);
   });
 
+  test("uses the HL7 diagnosis-role code system accepted by SATUSEHAT by default", () => {
+    // SATUSEHAT rejects https://www.hl7.org/fhir/Codesystem-diagnosis-role (RuleNumber 10317).
+    const diagnosis = createEncounterDiagnosis({
+      conditionId: "cond-direct-1",
+    });
+
+    expect(diagnosis.use.coding[0]?.system).toBe(
+      "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+    );
+  });
+
   test("builds a post-encounter condition draft with default encounter diagnosis category", () => {
     const builder = createEncounterConditionBuilder({
       subject: {
@@ -119,7 +130,7 @@ describe("encounter -> condition builder", () => {
         verificationStatus: {
           coding: [
             {
-              system: "https://www.hl7.org/fhir/Codesystem-condition-ver-status",
+              system: "http://terminology.hl7.org/CodeSystem/condition-ver-status",
               code: "provisional",
               display: "Provisional",
             },
@@ -193,7 +204,7 @@ describe("encounter -> condition builder", () => {
       use: {
         coding: [
           {
-            system: "https://www.hl7.org/fhir/Codesystem-diagnosis-role",
+            system: "http://terminology.hl7.org/CodeSystem/diagnosis-role",
             code: "DD",
             display: "Discharge diagnosis",
           },

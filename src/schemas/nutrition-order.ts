@@ -1,9 +1,8 @@
 import { z } from "zod";
 
 import {
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
+  createSearchBundleSchema,
   IdentifierSchema,
   MetaSchema,
   PeriodSchema,
@@ -237,13 +236,7 @@ export const NutritionOrderUpdateParamsSchema = z.object({
   id: z.string().min(1),
 });
 
-export const NutritionOrderBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(NutritionOrderSchema)).optional(),
-});
+export const NutritionOrderBundleSchema = createSearchBundleSchema(NutritionOrderSchema);
 
 export type NutritionOrderIdentifier = z.infer<typeof NutritionOrderIdentifierSchema>;
 export type NutritionOrderStatus = z.infer<typeof NutritionOrderStatusSchema>;

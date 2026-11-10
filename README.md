@@ -107,7 +107,7 @@ const encounterDraft = createEncounterBuilder({
     use: {
       coding: [
         {
-          system: "https://www.hl7.org/fhir/Codesystem-diagnosis-role",
+          system: "http://terminology.hl7.org/CodeSystem/diagnosis-role",
           code: "AD",
           display: "Admission diagnosis",
         },
@@ -211,6 +211,22 @@ npm run smoke:live
 ```
 
 Untuk environment `sandbox`, smoke test akan memakai dummy patient resmi SATUSEHAT bila parameter test belum diisi.
+
+Pengecekan read-only ke beberapa resource di sandbox (Organization, Location, Practitioner, Patient, Encounter, Condition). Semua request berupa GET dan respons divalidasi dengan schema SDK:
+
+```bash
+npm run smoke:sandbox
+```
+
+Script ini menolak berjalan bila environment bukan `sandbox`, dan membutuhkan `SATUSEHAT_ORGANIZATION_ID`.
+
+Uji alur kirim data satu kunjungan rawat jalan ke sandbox, seperti yang dilakukan SIMRS: `Encounter` arrived, in-progress, `Condition`, `Observation` (nadi), lalu `Encounter` finished dengan diagnosis, kemudian dibaca ulang:
+
+```bash
+npm run smoke:sandbox:write
+```
+
+Script ini **membuat data** di sandbox atas nama organisasi di `SATUSEHAT_ORGANIZATION_ID`, dan SATUSEHAT tidak menyediakan DELETE. Data yang dikirim akan terlihat di dashboard log pengiriman SATUSEHAT. Pakai dummy patient dan practitioner sandbox (default), dan jangan arahkan ke production: script menolak berjalan di luar sandbox.
 
 ## Documentation
 

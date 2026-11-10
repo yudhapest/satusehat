@@ -2,9 +2,8 @@ import { z } from "zod";
 
 import {
   AttachmentSchema,
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
+  createSearchBundleSchema,
   IdentifierSchema,
   MetaSchema,
   PeriodSchema,
@@ -124,13 +123,7 @@ export const DiagnosticReportUpdateParamsSchema = z.object({
   id: z.string().min(1),
 });
 
-export const DiagnosticReportBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(DiagnosticReportSchema)).optional(),
-});
+export const DiagnosticReportBundleSchema = createSearchBundleSchema(DiagnosticReportSchema);
 
 export type DiagnosticReportIdentifier = z.infer<typeof DiagnosticReportIdentifierSchema>;
 export type DiagnosticReportStatus = z.infer<typeof DiagnosticReportStatusSchema>;

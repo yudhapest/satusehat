@@ -97,7 +97,7 @@ const condition = await client.condition.create({
   verificationStatus: {
     coding: [
       {
-        system: "https://www.hl7.org/fhir/Codesystem-condition-ver-status",
+        system: "http://terminology.hl7.org/CodeSystem/condition-ver-status",
         code: "provisional",
         display: "Provisional",
       },

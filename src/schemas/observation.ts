@@ -1,9 +1,8 @@
 import { z } from "zod";
 
 import {
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
+  createSearchBundleSchema,
   IdentifierSchema,
   MetaSchema,
   PeriodSchema,
@@ -164,13 +163,7 @@ export const ObservationUpdateParamsSchema = z.object({
   id: z.string().min(1),
 });
 
-export const ObservationBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(ObservationSchema)).optional(),
-});
+export const ObservationBundleSchema = createSearchBundleSchema(ObservationSchema);
 
 export type ObservationIdentifier = z.infer<typeof ObservationIdentifierSchema>;
 export type ObservationStatus = z.infer<typeof ObservationStatusSchema>;

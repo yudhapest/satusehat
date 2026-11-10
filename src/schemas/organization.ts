@@ -2,10 +2,9 @@ import { z } from "zod";
 
 import {
   AddressSchema,
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
   ContactPointSchema,
+  createSearchBundleSchema,
   HumanNameSchema,
   IdentifierSchema,
   MetaSchema,
@@ -58,9 +57,14 @@ export const OrganizationBaseSchema = z.object({
 
 export const OrganizationCreateSchema = OrganizationBaseSchema;
 
+// Responses follow FHIR cardinality (identifier and type are 0..*): parent
+// organizations registered by Kemenkes come back with `identifier: []` and no
+// `type`. OrganizationCreateSchema keeps both required for outgoing payloads.
 export const OrganizationSchema = OrganizationBaseSchema.extend({
   id: z.string().min(1),
   meta: MetaSchema.optional(),
+  identifier: z.array(OrganizationIdentifierSchema).optional(),
+  type: z.array(OrganizationTypeSchema).optional(),
 });
 
 export const OrganizationUpdateParamsSchema = z.object({
@@ -84,13 +88,7 @@ export const OrganizationSearchParamsSchema = z
     });
   });
 
-export const OrganizationBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(OrganizationSchema)).optional(),
-});
+export const OrganizationBundleSchema = createSearchBundleSchema(OrganizationSchema);
 
 export type OrganizationIdentifier = z.infer<typeof OrganizationIdentifierSchema>;
 export type OrganizationType = z.infer<typeof OrganizationTypeSchema>;

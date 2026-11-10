@@ -1,9 +1,8 @@
 import { z } from "zod";
 
 import {
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
+  createSearchBundleSchema,
   IdentifierSchema,
   MetaSchema,
   PeriodSchema,
@@ -192,13 +191,7 @@ export const CarePlanUpdateParamsSchema = z.object({
   id: z.string().min(1),
 });
 
-export const CarePlanBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(CarePlanSchema)).optional(),
-});
+export const CarePlanBundleSchema = createSearchBundleSchema(CarePlanSchema);
 
 export type CarePlanIdentifier = z.infer<typeof CarePlanIdentifierSchema>;
 export type CarePlanStatus = z.infer<typeof CarePlanStatusSchema>;

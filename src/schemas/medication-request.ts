@@ -1,9 +1,8 @@
 import { z } from "zod";
 
 import {
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
+  createSearchBundleSchema,
   IdentifierSchema,
   MetaSchema,
   PeriodSchema,
@@ -200,13 +199,7 @@ export const MedicationRequestUpdateParamsSchema = z.object({
   id: z.string().min(1),
 });
 
-export const MedicationRequestBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(MedicationRequestSchema)).optional(),
-});
+export const MedicationRequestBundleSchema = createSearchBundleSchema(MedicationRequestSchema);
 
 export type MedicationRequestIdentifier = z.infer<typeof MedicationRequestIdentifierSchema>;
 export type MedicationRequestStatus = z.infer<typeof MedicationRequestStatusSchema>;

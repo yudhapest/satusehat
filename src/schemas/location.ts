@@ -2,11 +2,10 @@ import { z } from "zod";
 
 import {
   AddressSchema,
-  BundleEntrySchema,
-  BundleLinkSchema,
   CodeableConceptSchema,
   CodingSchema,
   ContactPointSchema,
+  createSearchBundleSchema,
   IdentifierSchema,
   MetaSchema,
   ReferenceSchema,
@@ -130,13 +129,7 @@ export const LocationUpdateParamsSchema = z.object({
   id: z.string().min(1),
 });
 
-export const LocationBundleSchema = z.object({
-  resourceType: z.literal("Bundle"),
-  type: z.string().optional(),
-  total: z.number().optional(),
-  link: z.array(BundleLinkSchema).optional(),
-  entry: z.array(BundleEntrySchema(LocationSchema)).optional(),
-});
+export const LocationBundleSchema = createSearchBundleSchema(LocationSchema);
 
 export type LocationIdentifier = z.infer<typeof LocationIdentifierSchema>;
 export type LocationStatus = z.infer<typeof LocationStatusSchema>;
