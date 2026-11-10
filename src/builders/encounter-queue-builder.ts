@@ -158,7 +158,7 @@ export class EncounterQueueBuilder {
         stages[0]!,
         ...stages.slice(1),
       ],
-      periodEnd,
+      ...(periodEnd ? { periodEnd } : {}),
     });
     const encounterClass = createEncounterClassFromConsultationMethod(this.consultationMethod);
 

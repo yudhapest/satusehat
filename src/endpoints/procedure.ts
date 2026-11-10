@@ -75,6 +75,7 @@ export function createProcedureClient(transport: Transport) {
         path: `/Procedure/${params.id}`,
         body: input.body,
         bodySchema: ProcedureCreateSchema,
+        resourceId: params.id,
         responseSchema: ProcedureSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

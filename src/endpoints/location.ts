@@ -71,6 +71,7 @@ export function createLocationClient(transport: Transport) {
         path: `/Location/${params.id}`,
         body: input.body,
         bodySchema: LocationCreateSchema,
+        resourceId: params.id,
         responseSchema: LocationSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

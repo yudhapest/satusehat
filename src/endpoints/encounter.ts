@@ -3,11 +3,12 @@ import { z } from "zod";
 import { type Transport } from "../client/transport";
 import {
   EncounterBundleSchema,
-  EncounterCreateSchema,
+  EncounterSubmitSchema,
   EncounterPatchSchema,
   EncounterSchema,
   EncounterSearchParamsSchema,
   EncounterUpdateParamsSchema,
+  EncounterUpdateSchema,
 } from "../schemas/encounter";
 import type {
   EncounterCreateInput,
@@ -27,7 +28,7 @@ export function createEncounterClient(transport: Transport) {
         method: "POST",
         path: "/Encounter",
         body: input,
-        bodySchema: EncounterCreateSchema,
+        bodySchema: EncounterSubmitSchema,
         responseSchema: EncounterSchema,
         ...(signal ? { signal } : {}),
       });
@@ -75,7 +76,8 @@ export function createEncounterClient(transport: Transport) {
         method: "PUT",
         path: `/Encounter/${params.id}`,
         body: input.body,
-        bodySchema: EncounterSchema,
+        bodySchema: EncounterUpdateSchema,
+        resourceId: params.id,
         responseSchema: EncounterSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

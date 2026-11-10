@@ -123,9 +123,7 @@ async function main(): Promise<void> {
 main()
   .then(() => {
     console.log(
-      failedCount === 0
-        ? "All sandbox checks passed."
-        : `${failedCount} sandbox check(s) failed.`,
+      failedCount === 0 ? "All sandbox checks passed." : `${failedCount} sandbox check(s) failed.`,
     );
     process.exitCode = failedCount === 0 ? 0 : 1;
   })

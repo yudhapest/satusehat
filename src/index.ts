@@ -14,23 +14,45 @@ export {
 export { OrganizationBuilder, createOrganizationBuilder } from "./builders/organization-builder";
 export {
   EncounterBuilder,
+  createEncounterAdmitSource,
+  createEncounterClass,
   createEncounterClassFromConsultationMethod,
   createEmergencyEncounterHistory,
+  createEncounterDiagnosisUse,
+  createEncounterDischargeDisposition,
   createEncounterHospitalization,
   createEncounterBuilder,
   createEncounterIdentifier,
   createEncounterLocation,
   createEncounterLocationServiceClassExtension,
+  createEncounterNoveltyExtension,
   createEncounterParticipant,
   createEncounterServiceProviderReference,
   createEncounterStatusTimeline,
+  moveEncounterLocation,
   withEncounterLocationServiceClass,
 } from "./builders/encounter-builder";
+// SATUSEHAT terminology (code systems, extension URLs, and official code tables).
+export * from "./schemas/common-terminology";
+export * from "./schemas/allergy-intolerance-terminology";
+export * from "./schemas/condition-terminology";
+export * from "./schemas/encounter-terminology";
+export * from "./schemas/family-member-history-terminology";
+export * from "./schemas/medication-statement-terminology";
+export * from "./schemas/observation-terminology";
 export {
   EncounterConditionBuilder,
   createEncounterDiagnosis,
   createEncounterConditionBuilder,
 } from "./builders/encounter-condition-builder";
+export { AnamnesisBuilder, createAnamnesisBuilder } from "./builders/anamnesis-builder";
+export {
+  EmergencyTriageBuilder,
+  PhysicalExamBuilder,
+  createEmergencyTriageBuilder,
+  createPhysicalExamBuilder,
+} from "./builders/physical-exam-builder";
+export type { ClinicalObservationContext } from "./builders/physical-exam-builder";
 export {
   EncounterQueueBuilder,
   createEncounterQueueBuilder,
@@ -90,6 +112,7 @@ export type {
   DiagnosticReportClient,
   EncounterClient,
   EpisodeOfCareClient,
+  FamilyMemberHistoryClient,
   FetchLike,
   HeadersInit,
   ImagingStudyClient,
@@ -222,6 +245,7 @@ export type {
 } from "./schemas/risk-assessment";
 export type {
   EncounterConsultationMethod,
+  EncounterServiceClassInput,
   EncounterBuilderInput,
   EncounterHospitalizationHelperInput,
   EncounterBuilderPreset,
@@ -239,6 +263,19 @@ export type {
   EncounterConditionBuilderInput,
   EncounterDiagnosisBuildLinks,
 } from "./builders/encounter-condition-builder";
+export type {
+  AnamnesisAllergyInput,
+  AnamnesisAllergyManifestationInput,
+  AnamnesisAllergyReactionInput,
+  AnamnesisCodingInput,
+  AnamnesisComplaintInput,
+  AnamnesisContext,
+  AnamnesisFamilyConditionInput,
+  AnamnesisFamilyHistoryInput,
+  AnamnesisMedicationHistoryInput,
+  AnamnesisMedicationInput,
+  AnamnesisPersonalHistoryInput,
+} from "./builders/anamnesis-builder";
 export type {
   EncounterQueueBuilderInput,
 } from "./builders/encounter-queue-builder";
@@ -506,6 +543,7 @@ export type {
   EncounterDischargeDisposition,
   EncounterDischargeDispositionCoding,
   EncounterDuration,
+  EncounterExtension,
   EncounterHospitalization,
   EncounterHospitalizationLocationReference,
   EncounterIdentifier,
@@ -513,9 +551,11 @@ export type {
   EncounterLocationExtension,
   EncounterLocationServiceClassExtension,
   EncounterLocationServiceClassValue,
+  EncounterLocationUpgradeClassIndicator,
   EncounterParticipant,
   EncounterPatchInput,
   EncounterPatchOperation,
+  EncounterPeriod,
   EncounterSearchParams,
   EncounterSearchResponse,
   EncounterStatus,
@@ -534,6 +574,20 @@ export type {
   EpisodeOfCareStatus,
   EpisodeOfCareStatusHistory,
 } from "./schemas/episode-of-care";
+export type {
+  FamilyMemberHistory,
+  FamilyMemberHistoryAge,
+  FamilyMemberHistoryCoding,
+  FamilyMemberHistoryCondition,
+  FamilyMemberHistoryCreateInput,
+  FamilyMemberHistoryNote,
+  FamilyMemberHistoryPatchInput,
+  FamilyMemberHistoryPatchOperation,
+  FamilyMemberHistoryRange,
+  FamilyMemberHistorySearchParams,
+  FamilyMemberHistorySearchResponse,
+  FamilyMemberHistoryStatus,
+} from "./schemas/family-member-history";
 export type {
   Location,
   LocationCreateInput,

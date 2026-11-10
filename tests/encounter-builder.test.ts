@@ -178,15 +178,13 @@ describe("encounter builder", () => {
     expect(encounter.class.code).toBe("IMP");
     expect(encounter.hospitalization?.admitSource?.coding?.[0]?.code).toBe("emd");
     expect(encounter.hospitalization?.dischargeDisposition?.coding?.[0]?.code).toBe("home");
-    expect(encounter.location[0]?.extension?.[0]).toEqual({
-      url: "https://fhir.kemkes.go.id/r4/StructureDefinition/serviceClass",
-      extension: [
-        {
-          url: "valueCode",
-          valueCode: "kelas-1",
-        },
-      ],
-    });
+    expect(encounter.location[0]?.extension?.[0]).toEqual(
+      createEncounterLocationServiceClassExtension({
+        careSetting: "inpatient",
+        serviceClass: "1",
+        upgradeClass: "kelas-tetap",
+      }),
+    );
   });
 
   test("supports emergency preset and custom class overrides", () => {
@@ -363,7 +361,7 @@ describe("encounter builder", () => {
         },
         status: "active",
       },
-      "kelas-2",
+      { careSetting: "inpatient", serviceClass: "2" },
     );
 
     expect(hospitalization.admitSource?.coding?.[0]?.system).toBe(
@@ -372,18 +370,23 @@ describe("encounter builder", () => {
     expect(hospitalization.dischargeDisposition?.coding?.[0]?.system).toBe(
       "http://terminology.hl7.org/CodeSystem/discharge-disposition",
     );
-    expect(location.extension?.[0]).toEqual(createEncounterLocationServiceClassExtension("kelas-2"));
+    expect(location.extension?.[0]).toEqual(
+      createEncounterLocationServiceClassExtension({ careSetting: "inpatient", serviceClass: "2" }),
+    );
 
     const fixture = createEncounterFixture("outpatient");
     const encounter = createEncounterBuilder({
       preset: "outpatient",
       ...toBuilderInput(fixture),
     })
-      .setLocationServiceClass(0, "kelas-vip")
+      .setLocationServiceClass(0, { careSetting: "outpatient", serviceClass: "eksekutif" })
       .build();
 
     expect(encounter.location[0]?.extension?.[0]).toEqual(
-      createEncounterLocationServiceClassExtension("kelas-vip"),
+      createEncounterLocationServiceClassExtension({
+        careSetting: "outpatient",
+        serviceClass: "eksekutif",
+      }),
     );
   });
 });

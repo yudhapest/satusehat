@@ -75,6 +75,7 @@ export function createRiskAssessmentClient(transport: Transport) {
         path: `/RiskAssessment/${params.id}`,
         body: input.body,
         bodySchema: RiskAssessmentCreateSchema,
+        resourceId: params.id,
         responseSchema: RiskAssessmentSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

@@ -28,6 +28,10 @@ try {
 }
 ```
 
+### Rate limit (HTTP 429)
+
+SATUSEHAT membatasi jumlah request per waktu. Saat batas terlampaui, server membalas `429` ("Rate limit quota violation") dan SDK melempar `SatuSehatApiError` dengan `status === 429`; SDK tidak mencoba ulang otomatis. Untuk pengiriman massal (misalnya satu kunjungan dengan puluhan Observation), kirim lewat antrean dengan jeda dan coba ulang request yang mendapat 429 setelah beberapa saat.
+
 ### `SatuSehatValidationError`
 
 Dipakai saat:

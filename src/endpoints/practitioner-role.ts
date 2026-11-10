@@ -75,6 +75,7 @@ export function createPractitionerRoleClient(transport: Transport) {
         path: `/PractitionerRole/${params.id}`,
         body: input.body,
         bodySchema: PractitionerRoleCreateSchema,
+        resourceId: params.id,
         responseSchema: PractitionerRoleSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

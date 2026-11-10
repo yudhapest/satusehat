@@ -10,6 +10,7 @@ import { createDicomRouterClient } from "../endpoints/dicom-router";
 import { createDiagnosticReportClient } from "../endpoints/diagnostic-report";
 import { createEncounterClient } from "../endpoints/encounter";
 import { createEpisodeOfCareClient } from "../endpoints/episode-of-care";
+import { createFamilyMemberHistoryClient } from "../endpoints/family-member-history";
 import { createImagingStudyClient } from "../endpoints/imaging-study";
 import { createImmunizationClient } from "../endpoints/immunization";
 import { createLocationClient } from "../endpoints/location";
@@ -100,6 +101,7 @@ export function createSatuSehatClient(config: SatuSehatClientConfig = {}): SatuS
     diagnosticReport: createDiagnosticReportClient(transport),
     encounter: createEncounterClient(transport),
     episodeOfCare: createEpisodeOfCareClient(transport),
+    familyMemberHistory: createFamilyMemberHistoryClient(transport),
     imagingStudy: createImagingStudyClient(transport),
     immunization: createImmunizationClient(transport),
     location: createLocationClient(transport),

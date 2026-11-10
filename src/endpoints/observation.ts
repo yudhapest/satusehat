@@ -3,7 +3,7 @@ import { z } from "zod";
 import { type Transport } from "../client/transport";
 import {
   ObservationBundleSchema,
-  ObservationCreateSchema,
+  ObservationSubmitSchema,
   ObservationPatchSchema,
   ObservationSchema,
   ObservationSearchParamsSchema,
@@ -26,7 +26,7 @@ export function createObservationClient(transport: Transport) {
         method: "POST",
         path: "/Observation",
         body: input,
-        bodySchema: ObservationCreateSchema,
+        bodySchema: ObservationSubmitSchema,
         responseSchema: ObservationSchema,
         ...(signal ? { signal } : {}),
       });
@@ -74,7 +74,8 @@ export function createObservationClient(transport: Transport) {
         method: "PUT",
         path: `/Observation/${params.id}`,
         body: input.body,
-        bodySchema: ObservationCreateSchema,
+        bodySchema: ObservationSubmitSchema,
+        resourceId: params.id,
         responseSchema: ObservationSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

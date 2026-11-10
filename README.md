@@ -163,6 +163,7 @@ Saat ini resource yang sudah tersedia:
 - `diagnosticReport`
 - `encounter`
 - `episodeOfCare`
+- `familyMemberHistory`
 - `imagingStudy`
 - `immunization`
 - `medicationAdministration`
@@ -220,11 +221,19 @@ npm run smoke:sandbox
 
 Script ini menolak berjalan bila environment bukan `sandbox`, dan membutuhkan `SATUSEHAT_ORGANIZATION_ID`.
 
-Uji alur kirim data satu kunjungan rawat jalan ke sandbox, seperti yang dilakukan SIMRS: `Encounter` arrived, in-progress, `Condition`, `Observation` (nadi), lalu `Encounter` finished dengan diagnosis, kemudian dibaca ulang:
+Uji alur kirim data kunjungan ke sandbox secara real-time, seperti yang dilakukan SIMRS, lalu dibaca ulang:
+
+- `rajal`: `Encounter` arrived, in-progress, `Condition`, `Observation` (nadi), finished dengan diagnosis dan cara pulang
+- `igd`: `Encounter` arrived, triaged, in-progress, `Condition`, finished
+- `ranap`: `Encounter` in-progress di kelas 2, naik kelas ke kelas 1 (pindah ruang), `Condition`, finished
 
 ```bash
-npm run smoke:sandbox:write
+npm run smoke:sandbox:write            # semua skenario
+npm run smoke:sandbox:write -- ranap   # satu skenario: rajal | igd | ranap
+npm run smoke:sandbox:write -- all --log=./sandbox-log   # simpan request & response (JSON)
 ```
+
+Dengan `--log`, setiap request ke SATUSEHAT dan response-nya disimpan per langkah sebagai `NN-<skenario>-<METHOD>-<Resource>.json`. Header (termasuk token) tidak ikut disimpan.
 
 Script ini **membuat data** di sandbox atas nama organisasi di `SATUSEHAT_ORGANIZATION_ID`, dan SATUSEHAT tidak menyediakan DELETE. Data yang dikirim akan terlihat di dashboard log pengiriman SATUSEHAT. Pakai dummy patient dan practitioner sandbox (default), dan jangan arahkan ke production: script menolak berjalan di luar sandbox.
 
@@ -243,11 +252,14 @@ Script ini **membuat data** di sandbox atas nama organisasi di `SATUSEHAT_ORGANI
 - [RiskAssessment](./docs/resources/risk-assessment.md)
 - [DiagnosticReport](./docs/resources/diagnostic-report.md)
 - [EpisodeOfCare](./docs/resources/episode-of-care.md)
+- [FamilyMemberHistory](./docs/resources/family-member-history.md)
 - [ImagingStudy](./docs/resources/imaging-study.md)
 - [Immunization](./docs/resources/immunization.md)
 - [Encounter Builder](./docs/helpers/encounter-builder.md)
 - [Encounter Queue Builder](./docs/helpers/encounter-queue-builder.md)
 - [Encounter -> Condition Builder](./docs/helpers/encounter-condition-builder.md)
+- [Anamnesis Builder](./docs/helpers/anamnesis-builder.md)
+- [Physical Exam & Emergency Triage Builder](./docs/helpers/physical-exam-builder.md)
 - [Encounter -> Medication Builder](./docs/helpers/encounter-medication-builder.md)
 - [Encounter -> MedicationAdministration Builder](./docs/helpers/encounter-medication-administration-builder.md)
 - [Encounter -> MedicationRequest Builder](./docs/helpers/encounter-medication-request-builder.md)

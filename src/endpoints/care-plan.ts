@@ -100,6 +100,7 @@ export function createCarePlanClient(transport: Transport) {
         path: `/CarePlan/${params.id}`,
         body: input.body,
         bodySchema: CarePlanCreateSchema,
+        resourceId: params.id,
         responseSchema: CarePlanSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

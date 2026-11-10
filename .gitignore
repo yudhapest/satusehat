@@ -34,3 +34,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Finder (MacOS) folder config
 .DS_Store
+
+# sandbox request/response logs (npm run smoke:sandbox:write -- --log=./sandbox-log)
+sandbox-log/

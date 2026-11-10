@@ -57,6 +57,7 @@ export function createOrganizationClient(transport: Transport) {
         path: `/Organization/${params.id}`,
         body: input.body,
         bodySchema: OrganizationCreateSchema,
+        resourceId: params.id,
         responseSchema: OrganizationSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

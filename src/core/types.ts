@@ -310,6 +310,34 @@ export interface DiagnosticReportClient {
   ): Promise<import("../schemas/diagnostic-report").DiagnosticReport>;
 }
 
+export interface FamilyMemberHistoryClient {
+  create(
+    input: import("../schemas/family-member-history").FamilyMemberHistoryCreateInput,
+    signal?: AbortSignal,
+  ): Promise<import("../schemas/family-member-history").FamilyMemberHistory>;
+  getById(
+    input: { id: string; signal?: AbortSignal },
+  ): Promise<import("../schemas/family-member-history").FamilyMemberHistory>;
+  search(
+    input: import("../schemas/family-member-history").FamilyMemberHistorySearchParams,
+    signal?: AbortSignal,
+  ): Promise<import("../schemas/family-member-history").FamilyMemberHistorySearchResponse>;
+  patch(
+    input: {
+      id: string;
+      body: import("../schemas/family-member-history").FamilyMemberHistoryPatchInput;
+      signal?: AbortSignal;
+    },
+  ): Promise<import("../schemas/family-member-history").FamilyMemberHistory>;
+  update(
+    input: {
+      id: string;
+      body: import("../schemas/family-member-history").FamilyMemberHistoryCreateInput;
+      signal?: AbortSignal;
+    },
+  ): Promise<import("../schemas/family-member-history").FamilyMemberHistory>;
+}
+
 export interface ImagingStudyClient {
   create(
     input: import("../schemas/imaging-study").ImagingStudyCreateInput,
@@ -795,6 +823,7 @@ export interface SatuSehatClient {
   diagnosticReport: DiagnosticReportClient;
   encounter: EncounterClient;
   episodeOfCare: EpisodeOfCareClient;
+  familyMemberHistory: FamilyMemberHistoryClient;
   imagingStudy: ImagingStudyClient;
   immunization: ImmunizationClient;
   location: LocationClient;

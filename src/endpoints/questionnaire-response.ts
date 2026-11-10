@@ -75,6 +75,7 @@ export function createQuestionnaireResponseClient(transport: Transport) {
         path: `/QuestionnaireResponse/${params.id}`,
         body: input.body,
         bodySchema: QuestionnaireResponseCreateSchema,
+        resourceId: params.id,
         responseSchema: QuestionnaireResponseSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

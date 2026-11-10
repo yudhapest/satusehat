@@ -83,6 +83,7 @@ export function createMedicationDispenseClient(transport: Transport) {
         path: `/MedicationDispense/${params.id}`,
         body: input.body,
         bodySchema: MedicationDispenseCreateSchema,
+        resourceId: params.id,
         responseSchema: MedicationDispenseSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

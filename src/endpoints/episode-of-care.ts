@@ -75,6 +75,7 @@ export function createEpisodeOfCareClient(transport: Transport) {
         path: `/EpisodeOfCare/${params.id}`,
         body: input.body,
         bodySchema: EpisodeOfCareCreateSchema,
+        resourceId: params.id,
         responseSchema: EpisodeOfCareSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

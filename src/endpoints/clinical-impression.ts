@@ -75,6 +75,7 @@ export function createClinicalImpressionClient(transport: Transport) {
         path: `/ClinicalImpression/${params.id}`,
         body: input.body,
         bodySchema: ClinicalImpressionCreateSchema,
+        resourceId: params.id,
         responseSchema: ClinicalImpressionSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

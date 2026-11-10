@@ -100,6 +100,7 @@ export function createNutritionOrderClient(transport: Transport) {
         path: `/NutritionOrder/${params.id}`,
         body: input.body,
         bodySchema: NutritionOrderCreateSchema,
+        resourceId: params.id,
         responseSchema: NutritionOrderSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });

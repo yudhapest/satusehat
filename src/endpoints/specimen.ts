@@ -75,6 +75,7 @@ export function createSpecimenClient(transport: Transport) {
         path: `/Specimen/${params.id}`,
         body: input.body,
         bodySchema: SpecimenCreateSchema,
+        resourceId: params.id,
         responseSchema: SpecimenSchema,
         ...(input.signal ? { signal: input.signal } : {}),
       });
